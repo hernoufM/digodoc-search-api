@@ -1,0 +1,13 @@
+(library
+ (name versions)
+ (modules versions)
+ (preprocess (pps pgocaml_ppx))
+ (libraries ez_pgocaml misc))
+
+(library
+ (name db_lwt)
+ (wrapped false)
+ (modules misc_db monad_lwt db_lwt db)
+ (libraries lwt.unix data_common versions)
+ (preprocessor_deps (env_var PGDATABASE))
+ (preprocess (pps pgocaml_ppx)))
