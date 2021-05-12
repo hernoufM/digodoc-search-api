@@ -107,6 +107,39 @@ end
 
 open TYPES
 *)
+
+type toto = {
+  v_toto: string; 
+}
+
+type opam_entry = {
+  opam_name : string ;
+  opam_version : string ;
+  opam_synopsis : string ;
+}
+
+type library_entry = {
+    lib_name : string ;
+    lib_opam_name : string ;
+    lib_opam_version : string ;
+}
+
+type module_entry = {
+    mdl_name : string ; (* file/lowercase *)
+    mdl_opam_name : string ;
+    mdl_opam_version : string ;
+    mdl_basename : string ;
+    mdl_libs : library_entry list ;
+}
+
+type entry =
+    | Module of module_entry
+    (*| Library of library_entry
+    | Opam of opam_entry
+    | Meta of meta_entry
+    | Source of source_entry*)
+
+
 let module_cut m =
   let rec iter m i len =
     if i+1 = len then

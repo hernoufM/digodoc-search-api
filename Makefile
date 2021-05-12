@@ -1,11 +1,11 @@
-PROJECT_NAME:=skeleton
-DATABASE:=skeleton
-WEB_HOST:=http://localhost:8888
+PROJECT_NAME:=digodoc-indexer
+DATABASE:=digodoc
 API_HOST:=http://localhost:8080
 API_PORT:=8080
 RLS_DIR:=www
 CONTACT_EMAIL:=
 VERSION:=1.0
+DBVERSION=$(shell psql $(DATABASE) -c "select value from ezpg_info where name='version'" -t -A)
 
 -include Makefile.config
 
@@ -13,34 +13,23 @@ VERSION:=1.0
 
 PGDATABASE=$(DATABASE)
 
-all: build website api-server openapi
+all: build api-server openapi
 
 db-updater:
 	@dune build src/db/db-update
 
-config/db-version.txt:
-	@mkdir -p config
-	@echo 0 > config/db-version.txt
+db-update: db-updater
+	@_build/default/src/db/db-update/db_updater.exe --allow-downgrade --database $(PGDATABASE)
 
-db-update: config/db-version.txt db-updater
-	@_build/default/src/db/db-update/db_updater.exe --witness config/db-version.txt --database $(PGDATABASE)
+db-downgrade: db-updater
+	_build/default/src/db/db-update/db_updater.exe --allow-downgrade --database $(DATABASE) --target `expr $(DBVERSION) - 1`
 
 build: db-update
 	dune build --profile release
 
-website: config/info.json
-	@mkdir -p www
-	@cp -f _build/default/src/ui/main_ui.bc.js www/$(PROJECT_NAME)-ui.js
-	@rsync -ar static/* www
-	@cp config/info.json www
-	@sed -i 's/%{project_name}/$(PROJECT_NAME)/g' www/index.html
-
 api-server: _build/default/src/api/api_server.exe
 	@mkdir -p bin
 	@cp -f _build/default/src/api/api_server.exe bin/api-server
-
-release:
-	@sudo cp -r www/* $(RLS_DIR)
 
 clean:
 	@dune clean
