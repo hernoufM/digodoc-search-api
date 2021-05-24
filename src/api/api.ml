@@ -9,7 +9,7 @@ module MakeRegisterer(S: module type of Services)(H:module type of Handlers) = s
   let register dir =
     dir
   |> register S.version H.version
-
+  |> register S.module_entry H.module_entry
 end
 
 module R = MakeRegisterer(Services)(Handlers)

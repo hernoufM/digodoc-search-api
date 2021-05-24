@@ -1,7 +1,7 @@
-PROJECT_NAME:=digodoc-indexer
+PROJECT_NAME:=search-api
 DATABASE:=digodoc
 API_HOST:=http://localhost:8080
-API_PORT:=8080
+API_PORT:=49001
 RLS_DIR:=www
 CONTACT_EMAIL:=
 VERSION:=1.0
@@ -52,4 +52,11 @@ git-init:
 	git init
 
 openapi: _build/default/src/api/openapi.exe
-	@_build/default/src/api/openapi.exe --version $(VERSION) --title "$(PROJECT_NAME) API" --contact "$(CONTACT_EMAIL)" --servers "api" $(API_HOST) -o www/openapi.json
+	@_build/default/src/api/openapi.exe --version $(VERSION) --title "$(PROJECT_NAME) API" --contact "$(CONTACT_EMAIL)" --servers "api" $(API_HOST) -o api/openapi.json
+
+update-doc: openapi
+	mkdir -p doc
+	cp -r api/openapi.json doc/openapi.json
+
+view-doc: update-doc
+	xdg-open 'http://localhost:28881' & redoc-cli serve -p 28881 -w doc/openapi.json

@@ -50,6 +50,7 @@ let init () =
 
     ]
     ~downgrade:[
+      {|ALTER TABLE module_libraries DROP CONSTRAINT module_libraries_mdl_id_fkey|};
       {|drop table module_index|};
       {|drop table module_libraries|};
     ]

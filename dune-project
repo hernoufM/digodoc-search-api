@@ -1,5 +1,5 @@
 (lang dune 2.4)
-(name digodoc-indexer)
+(name search-api)
 
 (source (uri git://gitlab.com/o-labs/skeleton))
 (license MIT)
@@ -11,8 +11,8 @@
 (generate_opam_files true)
 
 (package
- (name digodoc-indexer)
- (synopsis "Indexer for digodoc entries")
+ (name search-api)
+ (synopsis "Search engine for digodoc entries")
  (depends
   vue-jsoo
   ez-api
