@@ -8,6 +8,61 @@ let get_version () =
   [%pgsql dbh "select value from ezpg_info where name = 'version'"]
   >|= version_of_rows
 
+
+let get_packages last_id pattern =
+  let pattern = if pattern = "~" then "" else pattern in
+  with_dbh >>> fun dbh ->
+  [%pgsql.object dbh "select * 
+                      from 
+                        (select *, ROW_NUMBER () OVER (ORDER BY opam_name) as row_id 
+                        from opam_index 
+                        where opam_name like ${\"%\" ^ pattern ^ \"%\"}) result 
+                      where result.row_id>$last_id 
+                      and result.row_id < ${Int64.add last_id (Int64.of_int 50)}"]
+  >|= packages_of_rows
+
+let get_libraries last_id pattern =
+  let pattern = if pattern = "~" then "" else pattern in
+  with_dbh >>> fun dbh ->
+  let%lwt rows = [%pgsql.object dbh "select * 
+                      from 
+                        (select *, ROW_NUMBER () OVER (ORDER BY lib_name) as row_id 
+                        from library_index 
+                        where lib_name like ${\"%\" ^ pattern ^ \"%\"}) result 
+                      where result.row_id>$last_id 
+                      and result.row_id < ${Int64.add last_id (Int64.of_int 50)}"]
+  in 
+    Lwt_list.map_s 
+      (fun row ->
+        let opam_name = row#lib_opam in 
+        let%lwt opam_row = [%pgsql.object dbh "select opam_name,opam_version 
+                                                from opam_index 
+                                                where opam_name = $opam_name"] in
+          Lwt.return (library_of_row row opam_row))
+      rows
+
+let get_metas last_id pattern =
+  let pattern = if pattern = "~" then "" else pattern in
+  with_dbh >>> fun dbh ->
+  let%lwt rows = [%pgsql.object dbh "select * 
+                      from 
+                        (select *, ROW_NUMBER () OVER (ORDER BY meta_name) as row_id 
+                        from meta_index 
+                        where meta_name like ${\"%\" ^ pattern ^ \"%\"}) result 
+                      where result.row_id>$last_id 
+                      and result.row_id < ${Int64.add last_id (Int64.of_int 50)}"]
+  in 
+    Lwt_list.map_s 
+      (fun row ->
+        let opam_name = row#meta_opam in 
+        let%lwt opam_row = [%pgsql.object dbh "select opam_name,opam_version 
+                                                from opam_index 
+                                                where opam_name = $opam_name"] in
+          Lwt.return (meta_of_row row opam_row))
+      rows
+
+
+
 let get_modules last_id pattern =
   let pattern = if pattern = "~" then "" else pattern in
   with_dbh >>> fun dbh ->
@@ -20,21 +75,25 @@ let get_modules last_id pattern =
                             and result.row_id < ${Int64.add last_id (Int64.of_int 50)}"] in
   Lwt_list.map_s 
     (fun row ->
-      let id = row#mdl_id in 
-      let%lwt rows_lib = [%pgsql.object dbh "select * 
+      let id = row#mdl_id in
+      let opam_name = row#mdl_opam in 
+      let%lwt opam_row = [%pgsql.object dbh "select opam_name,opam_version 
+                                                from opam_index 
+                                                where opam_name = $opam_name"] in
+      let%lwt lib_rows = [%pgsql.object dbh "select mdl_lib 
                                               from module_libraries 
                                               where mdl_id=$id"] in
-        Lwt.return (entries_of_rows row rows_lib))
+        Lwt.return (module_of_row row opam_row lib_rows))
     rows
 
-(*let get_modules last_id pattern =
+let get_sources last_id pattern =
+  let pattern = if pattern = "~" then "" else pattern in
   with_dbh >>> fun dbh ->
-  let lib_row = object method mdl_id = 20 method lib_name = "toto" method lib_path = pattern end in 
-  let%lwt row = 
   [%pgsql.object dbh "select * 
-                          from 
-                            (select *, ROW_NUMBER () OVER (ORDER BY mdl_name) as row_id 
-                             from module_index ) result 
-                          where result.row_id=5 "] in
-  
-  Lwt.return (entries_of_rows (List.hd row) [lib_row])*)
+                      from 
+                        (select *, ROW_NUMBER () OVER (ORDER BY opam_name) as row_id 
+                        from opam_index 
+                        where opam_name like ${\"%\" ^ pattern ^ \"%\"}) result 
+                      where result.row_id>$last_id 
+                      and result.row_id < ${Int64.add last_id (Int64.of_int 50)}"] 
+    >|= sources_of_rows
