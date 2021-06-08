@@ -18,6 +18,7 @@ let info_encoding = conv
 
 type opam_entry = Data_types.opam_entry = {
   opam_name : string;
+  opam_path : string;
   opam_version : string;
   opam_synopsis : string;
 } [@@deriving json_encoding]
@@ -60,3 +61,7 @@ type source_entry = Data_types.source_entry = {
 } [@@deriving json_encoding]
 
 let sources = list source_entry_enc
+
+type command_result = Data_types.command_result = {
+  result : string;
+} [@@deriving json_encoding]

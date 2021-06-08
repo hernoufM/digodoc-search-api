@@ -21,8 +21,10 @@ let path_of_src opam_name opam_version =
         opam_name opam_version
 
 let packages_of_rows rows = 
-    List.map (function row ->   
+    List.map (function row ->
+        let opam_path = path_of_opam row#opam_name row#opam_version in
         {opam_name = row#opam_name;
+         opam_path;
          opam_version = row#opam_version;
          opam_synopsis = row#opam_synopsis}
     ) rows
@@ -80,3 +82,4 @@ let sources_of_rows rows =
         }
     ) rows
     
+let count_from_row = function [ Some v ] -> Int64.to_int v | _ -> 0

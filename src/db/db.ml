@@ -9,7 +9,7 @@ let get_version () =
   >|= version_of_rows
 
 
-let get_packages last_id pattern =
+let get_packages {last_id; pattern} =
   let pattern = if pattern = "~" then "" else pattern in
   with_dbh >>> fun dbh ->
   [%pgsql.object dbh "select * 
@@ -21,7 +21,7 @@ let get_packages last_id pattern =
                       and result.row_id < ${Int64.add last_id (Int64.of_int 50)}"]
   >|= packages_of_rows
 
-let get_libraries last_id pattern =
+let get_libraries {last_id; pattern} =
   let pattern = if pattern = "~" then "" else pattern in
   with_dbh >>> fun dbh ->
   let%lwt rows = [%pgsql.object dbh "select * 
@@ -41,7 +41,7 @@ let get_libraries last_id pattern =
           Lwt.return (library_of_row row opam_row))
       rows
 
-let get_metas last_id pattern =
+let get_metas {last_id; pattern} =
   let pattern = if pattern = "~" then "" else pattern in
   with_dbh >>> fun dbh ->
   let%lwt rows = [%pgsql.object dbh "select * 
@@ -63,7 +63,7 @@ let get_metas last_id pattern =
 
 
 
-let get_modules last_id pattern =
+let get_modules {last_id; pattern} =
   let pattern = if pattern = "~" then "" else pattern in
   with_dbh >>> fun dbh ->
   let%lwt rows = [%pgsql.object dbh "select * 
@@ -86,7 +86,7 @@ let get_modules last_id pattern =
         Lwt.return (module_of_row row opam_row lib_rows))
     rows
 
-let get_sources last_id pattern =
+let get_sources {last_id; pattern} =
   let pattern = if pattern = "~" then "" else pattern in
   with_dbh >>> fun dbh ->
   [%pgsql.object dbh "select * 
@@ -97,3 +97,27 @@ let get_sources last_id pattern =
                       where result.row_id>$last_id 
                       and result.row_id < ${Int64.add last_id (Int64.of_int 50)}"] 
     >|= sources_of_rows
+
+
+let count_entries entry {last_id; pattern} =
+  let pattern = if pattern = "~" then "" else pattern in
+  with_dbh >>> fun dbh ->
+    begin 
+      match entry with
+      | PACK -> [%pgsql dbh "select count(*) as n
+                                    from opam_index 
+                                    where opam_name like ${\"%\" ^ pattern ^ \"%\"}"]
+      | LIB ->  [%pgsql dbh "select count(*) as n 
+                                    from library_index 
+                                    where lib_name like ${\"%\" ^ pattern ^ \"%\"}"]
+      | META -> [%pgsql dbh "select count(*) as n
+                                    from meta_index 
+                                    where meta_name like ${\"%\" ^ pattern ^ \"%\"}"]
+      | MOD ->  [%pgsql dbh "select count(*) as n
+                                    from module_index 
+                                    where mdl_name like ${\"%\" ^ pattern ^ \"%\"}"]
+      | SRC ->  [%pgsql dbh "select count(*) as n
+                                    from opam_index 
+                                    where opam_name like ${\"%\" ^ pattern ^ \"%\"}"]
+    end;
+    >|= count_from_row

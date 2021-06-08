@@ -9,6 +9,7 @@ type www_server_info = {
 
 type opam_entry = {
   opam_name : string;
+  opam_path : string;
   opam_version : string;
   opam_synopsis : string;
 }
@@ -56,3 +57,23 @@ type source_entry = {
 }
 
 type sources = source_entry list
+
+
+type entry_info = {
+  last_id: int64;
+  pattern: string;
+}
+
+
+type entry_type = 
+  | PACK
+  | LIB
+  | MOD
+  | META
+  | SRC
+type command =
+  | Count of entry_type
+
+type command_result = {
+  result : string;
+}

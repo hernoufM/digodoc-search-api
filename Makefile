@@ -1,6 +1,6 @@
 PROJECT_NAME:=search-api
 DATABASE:=digodoc
-API_HOST:=http://localhost:8080
+API_HOST:=http://localhost:49001
 API_PORT:=49001
 RLS_DIR:=www
 CONTACT_EMAIL:=
@@ -24,7 +24,7 @@ db-update: db-updater
 db-downgrade: db-updater
 	_build/default/src/db/db-update/db_updater.exe --allow-downgrade --database $(DATABASE) --target `expr $(DBVERSION) - 1`
 
-build: db-update
+build: db-update update-doc
 	dune build --profile release
 
 api-server: _build/default/src/api/api_server.exe
