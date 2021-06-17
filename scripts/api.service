@@ -6,8 +6,8 @@ After        = network-online.target postgresql.service postgresql@.service
 [Service]
 User         = hernouf
 Group        = hernouf
-ExecStart    = /home/hernouf/Server/search_api/scripts/api.sh start
-ExecStop     = /home/hernouf/Server/search_api/scripts/api.sh stop
+ExecStart    = /home/hernouf/Server/digodoc-search-api/scripts/api.sh start
+ExecStop     = /home/hernouf/Server/digodoc-search-api/scripts/api.sh stop
 Type         = forking
 Restart      = on-failure
 
