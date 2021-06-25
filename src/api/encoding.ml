@@ -65,3 +65,9 @@ let sources = list source_entry_enc
 type command_result = Data_types.command_result = {
   result : string;
 } [@@deriving json_encoding]
+
+type search_result = Data_types.search_result = {
+  packages : opam_entry list;
+  libraries : lib_entry list;
+  modules : module_entry list;
+} [@@deriving json_encoding]

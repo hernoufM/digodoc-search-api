@@ -9,7 +9,8 @@
  (name api_lib)
  (wrapped false)
  (modules handlers api)
- (libraries ez_api.server api_services db_lwt))
+ (libraries ez_api.server api_services db_lwt)
+ (preprocess (pps lwt_ppx)))
 
 (executable
  (name api_server)

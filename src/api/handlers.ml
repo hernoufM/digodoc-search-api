@@ -32,3 +32,16 @@ let exec_command ((_params, command), entry_info)  () =  to_api (
     | Count entry -> 
         Db.count_entries entry entry_info >|= fun result ->
             Ok {result=string_of_int result})
+
+let search  (_params, pattern) () = to_api (
+    let%lwt packages = Db.search_packages pattern and
+    libraries = Db.search_libraries pattern and
+    modules = Db.search_modules pattern 
+    in 
+        Lwt.return(
+            let open List in
+            if length packages + length libraries + length modules <= 10 
+            then Ok {packages; libraries; modules }
+            else Ok {packages=[];libraries=[]; modules=[]}
+        )
+)

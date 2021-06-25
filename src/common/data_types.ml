@@ -25,11 +25,6 @@ type lib_entry = {
 
 type libraries = lib_entry list 
 
-type library_entry = {
-  lib_name : string ;
-  lib_opam_name : string ;
-}
-
 type meta_entry = {
   meta_name : string ;
   meta_path : string ;
@@ -76,4 +71,10 @@ type command =
 
 type command_result = {
   result : string;
+}
+
+type search_result = {
+  packages : packages;
+  libraries : libraries;
+  modules : modules;
 }

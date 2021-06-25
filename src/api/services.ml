@@ -7,6 +7,8 @@ let sections = [ section_main ]
 
 
 module Args = struct
+  let pattern = Arg.string ~descr:"Pattern of entry" ~example:"zarith" "pattern"   
+
   let entry_info = 
     Arg.make
       ~example:{last_id=Int64.of_int 0;pattern="~"} 
@@ -85,7 +87,7 @@ let source_entries : (entry_info,sources,exn,no_security) service1 =
   service
     ~section:section_main
     ~name:"sources"
-    ~descr:"sources"
+    ~descr:"Sources"
     ~output:sources
     Path.(root // "sources" /: Args.entry_info)
 
@@ -96,3 +98,11 @@ let exec_command : (command, entry_info, command_result, exn, no_security) servi
     ~descr:"Execute command with given entry info"
     ~output:command_result_enc
     Path.(root // "command" /: Args.command /: Args.entry_info)
+
+let search : (string,search_result,exn,no_security) service1 =
+  service
+    ~section:section_main
+    ~name:"search"
+    ~descr:"Search entries (returns result, when number of entries <= 10)"
+    ~output:search_result_enc
+    Path.(root // "search" /: Args.pattern)
