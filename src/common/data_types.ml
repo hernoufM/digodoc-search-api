@@ -56,6 +56,7 @@ type sources = source_entry list
 
 type entry_info = {
   last_id: int64;
+  starts_with : string;
   pattern: string;
 }
 

@@ -29,3 +29,8 @@ let command_of_string str =
 let command_to_string command =
     match command with
     | Count e -> Printf.sprintf "count+%s" (entry_info_to_string e)
+
+let adjust_entry_info {last_id;starts_with;pattern} = 
+    let starts_with = "^" ^ starts_with 
+    and pattern = if pattern = "~" then "" else pattern in
+    {last_id; starts_with; pattern}

@@ -11,16 +11,16 @@ module Args = struct
 
   let entry_info = 
     Arg.make
-      ~example:{last_id=Int64.of_int 0;pattern="~"} 
+      ~example:{last_id=Int64.of_int 0;starts_with=".";pattern="~"} 
       ~descr:"Entry info for Search API"
       ~name:"entry_info" 
       ~destruct:(fun str ->
         match String.split_on_char '+' str with
-        | last_id :: pattern::_ -> Ok {last_id=Int64.of_string last_id; pattern}
+        | last_id :: starts_with :: pattern ::_ -> Ok {last_id=Int64.of_string last_id; starts_with; pattern}
         | _ -> Error "Not recognized data_type : str"
       )
-      ~construct:(fun {last_id;pattern} ->
-        Printf.sprintf "%d+%s" (Int64.to_int last_id) pattern
+      ~construct:(fun {last_id;starts_with;pattern} ->
+        Printf.sprintf "%d+%s+%s" (Int64.to_int last_id) starts_with pattern
       )
       ()
 
