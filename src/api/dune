@@ -1,5 +1,6 @@
 (library
  (name api_services)
+ (public_name search-api.api_services)
  (wrapped false)
  (modules encoding services)
  (preprocess (pps ppx_deriving_encoding))

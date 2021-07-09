@@ -1,10 +1,12 @@
 (library
  (name misc)
+ (public_name search-api.misc)
  (modules misc)
  (libraries project_config stdlib-shims))
 
 (library
  (name data_common)
+ (public_name search-api.data_common)
  (wrapped false)
  (modules data_types utils)
  (libraries misc))
