@@ -21,4 +21,5 @@
   cohttp-lwt-unix
   re
   pgocaml_ppx
-  ez_pgocaml))
+  ez_pgocaml
+  ppx_deriving_encoding))

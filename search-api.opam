@@ -16,6 +16,7 @@ depends: [
   "re"
   "pgocaml_ppx"
   "ez_pgocaml"
+  "ppx_deriving_encoding"
 ]
 build: [
   ["dune" "subst"] {pinned}

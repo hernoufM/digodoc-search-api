@@ -9,6 +9,5 @@ let api_port = %{env:API_PORT=}")))
 
 (library
  (name project_config)
- (public_name search-api.project_config)
  (wrapped false)
  (modules pConfig))
