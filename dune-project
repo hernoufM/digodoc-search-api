@@ -15,10 +15,10 @@
  (synopsis "Search engine for digodoc entries")
  (depends
   vue-jsoo
-  ez-api
+  ez_api
   calendar
   geoip
   cohttp-lwt-unix
   re
   pgocaml_ppx
-  ez-pgocaml))
+  ez_pgocaml))

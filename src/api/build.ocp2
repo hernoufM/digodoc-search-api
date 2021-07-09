@@ -1,17 +1,17 @@
 
 OCaml.library("api-services", ocaml + {
   files = [ "encoding.ml"; "services.ml" ];
-  requires = [ "ez-api"; "common" ];
+  requires = [ "ez_api"; "common" ];
 });
 
 OCaml.library("api-services-js", ocaml + {
   files = [ "encoding.ml"; "services.ml" ];
-  requires = [ "ez-api-js"; "common" ];
+  requires = [ "ez_api-js"; "common" ];
 });
 
 OCaml.library("api-lib", ocaml + {
   files = [ "handlers.ml"; "api.ml" ];
-  requires = [ "ez-api-server"; "api-services"; "db-reader" ];
+  requires = [ "ez_api-server"; "api-services"; "db-reader" ];
 });
 
 OCaml.program("api-server", ocaml + {
