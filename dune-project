@@ -14,7 +14,6 @@
  (name search-api)
  (synopsis "Search engine for digodoc entries")
  (depends
-  vue-jsoo
   ez_api
   calendar
   geoip

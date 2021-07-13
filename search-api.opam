@@ -8,7 +8,6 @@ homepage: "https://gitlab.com/o-labs/skeleton"
 bug-reports: "https://gitlab.com/o-labs/skeleton/-/issues"
 depends: [
   "dune" {>= "2.4"}
-  "vue-jsoo"
   "ez_api"
   "calendar"
   "geoip"
