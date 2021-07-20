@@ -21,4 +21,5 @@
   re
   pgocaml_ppx
   ez_pgocaml
-  ppx_deriving_encoding))
+  (ppx_deriving_encoding ( >= 0.2.2 ))
+  ))
