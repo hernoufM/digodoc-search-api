@@ -3,21 +3,21 @@ open Data_types
 let version_of_rows = function [ Some v ] -> Int32.to_int v | _ -> 0
 
 let path_of_opam opam_name opam_version =
-    Printf.sprintf "OPAM.%s.%s/index.html" opam_name opam_version
+    Printf.sprintf "docs/OPAM.%s.%s/index.html" opam_name opam_version
 
 let name_of_opam opam_name opam_version = 
     Printf.sprintf "%s.%s" opam_name opam_version
 
 let path_of_lib lib_name opam_name opam_version =
-  Printf.sprintf "LIBRARY.%s@%s.%s/index.html"
+  Printf.sprintf "docs/LIBRARY.%s@%s.%s/index.html"
     lib_name opam_name opam_version
 
 let path_of_meta meta_name opam_name opam_version =
-  Printf.sprintf "META.%s@%s.%s/index.html"
+  Printf.sprintf "docs/META.%s@%s.%s/index.html"
     meta_name opam_name opam_version
 
 let path_of_src opam_name opam_version = 
-    Printf.sprintf "../sources/%s.%s/index.html"
+    Printf.sprintf "sources/%s.%s/index.html"
         opam_name opam_version
 
 let packages_of_rows rows = 
