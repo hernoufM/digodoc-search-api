@@ -26,7 +26,7 @@ let get_packages {last_id; starts_with; pattern} =
                         from opam_index 
                         where opam_name ~* $pattern and opam_name ~* $starts_with) result 
                       where result.row_id>$last_id 
-                      and result.row_id < ${Int64.add last_id (Int64.of_int 50)}"]
+                      and result.row_id <= ${Int64.add last_id (Int64.of_int 50)}"]
   >|= packages_of_rows
 
 let get_libraries {last_id; starts_with; pattern} =
@@ -37,7 +37,7 @@ let get_libraries {last_id; starts_with; pattern} =
                         from library_index 
                         where lib_name ~* $pattern and lib_name ~* $starts_with) result 
                       where result.row_id>$last_id 
-                      and result.row_id < ${Int64.add last_id (Int64.of_int 50)}"]
+                      and result.row_id <= ${Int64.add last_id (Int64.of_int 50)}"]
   in 
     Lwt_list.map_s 
       (fun row ->
@@ -54,7 +54,7 @@ let get_metas {last_id; starts_with; pattern} =
                         from meta_index 
                         where meta_name ~* $pattern and meta_name ~* $starts_with) result 
                       where result.row_id>$last_id 
-                      and result.row_id < ${Int64.add last_id (Int64.of_int 50)}"]
+                      and result.row_id <= ${Int64.add last_id (Int64.of_int 50)}"]
   in 
     Lwt_list.map_s 
       (fun row ->
@@ -73,7 +73,7 @@ let get_modules {last_id; starts_with; pattern} =
                              from module_index 
                              where mdl_name ~* $pattern and mdl_name ~* $starts_with) result 
                           where result.row_id>$last_id 
-                            and result.row_id < ${Int64.add last_id (Int64.of_int 50)}"] in
+                            and result.row_id <= ${Int64.add last_id (Int64.of_int 50)}"] in
   Lwt_list.map_s 
     (fun row ->
       let mdl_id = row#mdl_id in
@@ -91,7 +91,7 @@ let get_sources {last_id; starts_with; pattern} =
                         from opam_index 
                         where opam_name ~* $pattern and opam_name ~* $starts_with) result 
                       where result.row_id>$last_id 
-                      and result.row_id < ${Int64.add last_id (Int64.of_int 50)}"] 
+                      and result.row_id <= ${Int64.add last_id (Int64.of_int 50)}"] 
     >|= sources_of_rows
 
 
