@@ -11,7 +11,7 @@ module Args = struct
 
   let entry_info = 
     Arg.make
-      ~example:{last_id=Int64.of_int 0;starts_with=".";pattern="~"} 
+      ~example:{last_id=Int64.of_int 0;starts_with=".";pattern="~empty~"} 
       ~descr:"Entry info for Search API"
       ~name:"entry_info" 
       ~destruct:(fun str ->

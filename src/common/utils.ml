@@ -34,5 +34,5 @@ let command_to_string command =
 
 let adjust_entry_info {last_id;starts_with;pattern} = 
     let starts_with = "^" ^ starts_with 
-    and pattern = if pattern = "~" then "" else pattern in
+    and pattern = if pattern = "~empty~" then "" else pattern in
     {last_id; starts_with; pattern}
