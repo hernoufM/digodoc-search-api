@@ -62,6 +62,17 @@ type nonrec source_entry = Data_types.source_entry = {
 
 let sources = list source_entry_enc
 
+type nonrec val_entry = Data_types.val_entry = {
+  ident : string;
+  value : string;
+  mdl : string;
+  mdlpath : string;
+  opam : string;
+  opampath : string;
+} [@@deriving json_encoding]
+
+let vals = list val_entry_enc 
+
 type command_result = Data_types.command_result = {
   result : string;
 } [@@deriving json_encoding]

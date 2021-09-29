@@ -6,6 +6,7 @@ let entry_info_of_string = function
     | "metas" -> META 
     | "modules" -> MOD 
     | "sources" -> SRC 
+    | "vals" -> VAL
     | s -> failwith ("Not valid entry type : " ^ s)  
 
 let entry_info_to_string = function 
@@ -14,6 +15,7 @@ let entry_info_to_string = function
     | META -> "metas"
     | MOD -> "modules" 
     | SRC -> "sources" 
+    | VAL -> "vals"
 
 let command_of_string str =
     let open List in 

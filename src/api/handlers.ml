@@ -28,6 +28,10 @@ let source_entries (_params, entry_info) () =  to_api (
     Db.get_sources (adjust_entry_info entry_info)  >|= fun sources ->
     Ok sources)
 
+let val_entries (_params, entry_info) () =  to_api (
+    Db.get_vals (adjust_entry_info entry_info)  >|= fun vals ->
+    Ok vals)
+
 let exec_command ((_params, command), entry_info)  () =  to_api (
     match command with
     | Count entry -> 

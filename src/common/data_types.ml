@@ -53,6 +53,16 @@ type nonrec source_entry = {
 
 type nonrec sources = source_entry list
 
+type nonrec val_entry = {
+  ident : string;
+  value : string;
+  mdl : string;
+  mdlpath : string;
+  opam : string;
+  opampath : string;
+}
+
+type nonrec vals = val_entry list
 
 type entry_info = {
   last_id: int64;
@@ -67,6 +77,7 @@ type entry_type =
   | MOD
   | META
   | SRC
+  | VAL
 type command =
   | Count of entry_type
 

@@ -18,6 +18,11 @@ let get_lib_mdl dbh mdl_id =
                       from module_libraries 
                       where mdl_id=$mdl_id"]
 
+let get_mdl_info dbh mdl_id =
+  [%pgsql.object dbh "select * 
+                      from module_index 
+                      where mdl_id=$mdl_id"]
+
 let get_packages {last_id; starts_with; pattern} =
   with_dbh >>> fun dbh ->
   [%pgsql.object dbh "select * 
@@ -95,6 +100,24 @@ let get_sources {last_id; starts_with; pattern} =
     >|= sources_of_rows
 
 
+let get_vals {last_id; starts_with; pattern} =
+  with_dbh >>> fun dbh ->
+  let%lwt rows = [%pgsql.object dbh "select * 
+                      from 
+                        (select *, ROW_NUMBER () OVER (ORDER BY UPPER(mdl_ident)) as row_id 
+                        from module_vals 
+                        where mdl_ident ~* $pattern and mdl_ident ~* $starts_with) result 
+                      where result.row_id>$last_id 
+                      and result.row_id <= ${Int64.add last_id (Int64.of_int 50)}"] 
+  in
+    Lwt_list.map_s 
+      (fun row ->
+        let opam_name = row#mdl_opam_name in 
+        let%lwt opam_row = get_opam_info dbh opam_name in
+        let%lwt mdl_row = get_mdl_info dbh row#mdl_id in
+          Lwt.return (val_of_row row opam_row mdl_row))
+      rows
+
 let count_entries entry {last_id; starts_with; pattern} =
   with_dbh >>> fun dbh ->
     begin 
@@ -114,6 +137,9 @@ let count_entries entry {last_id; starts_with; pattern} =
       | SRC ->  [%pgsql dbh "select count(*) as n
                                     from opam_index 
                                     where opam_name ~* $pattern and opam_name ~* $starts_with"]
+      | VAL -> [%pgsql dbh "select count(*) as n
+                                    from module_vals 
+                                    where mdl_ident ~* $pattern and mdl_ident ~* $starts_with"]
     end;
     >|= count_from_row
 

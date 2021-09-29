@@ -91,6 +91,14 @@ let source_entries : (entry_info,sources,exn,no_security) service1 =
     ~output:sources
     Path.(root // "sources" /: Args.entry_info)
 
+let val_entries : (entry_info,vals,exn,no_security) service1 = 
+  service
+    ~section:section_main
+    ~name:"vals"
+    ~descr:"Vals"
+    ~output:vals
+    Path.(root // "vals" /: Args.entry_info)
+
 let exec_command : (command, entry_info, command_result, exn, no_security) service2 = 
   service
     ~section:section_main

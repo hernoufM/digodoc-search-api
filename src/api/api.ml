@@ -14,6 +14,7 @@ module MakeRegisterer(S: module type of Services)(H:module type of Handlers) = s
     |> register S.meta_entries H.meta_entries
     |> register S.module_entries H.module_entries
     |> register S.source_entries H.source_entries
+    |> register S.val_entries H.val_entries
     |> register S.exec_command H.exec_command
     |> register S.search H.search
 end

@@ -82,4 +82,20 @@ let sources_of_rows rows : sources =
         }
     ) rows
     
+let val_of_row row opam_row mdl_row = 
+    let opam_row = List.hd opam_row 
+    and mdl_row = List.hd mdl_row in 
+    let opampath = path_of_opam opam_row#opam_name opam_row#opam_version 
+    and opam = name_of_opam opam_row#opam_name opam_row#opam_version 
+    and mdlpath = mdl_row#mdl_path
+    and mdl = mdl_row#mdl_name in
+    {
+        ident = row#mdl_ident;
+        value = row#mdl_val;
+        mdl;
+        mdlpath;
+        opam;
+        opampath
+    }
+
 let count_from_row = function [ Some v ] -> Int64.to_int v | _ -> 0
