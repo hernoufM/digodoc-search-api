@@ -39,9 +39,10 @@ let exec_command ((_params, command), entry_info)  () =  to_api (
             Ok {result=string_of_int result})
 
 let search  (_params, pattern) () = to_api (
-    let%lwt packages = Db.search_packages pattern and
-    libraries = Db.search_libraries pattern and
-    modules = Db.search_modules pattern 
+    let pattern = adjust_pattern pattern in
+    let%lwt packages = Db.search_packages pattern 
+    and libraries = Db.search_libraries pattern 
+    and modules = Db.search_modules pattern 
     in 
         Lwt.return(
             let open List in

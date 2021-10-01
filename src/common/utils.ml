@@ -32,7 +32,13 @@ let command_to_string command =
     match command with
     | Count e -> Printf.sprintf "count+%s" (entry_info_to_string e)
 
+let adjust_pattern pattern =
+    let pattern = Uri.pct_decode pattern in 
+    if pattern = "~empty~" 
+    then "" 
+    else pattern
+
 let adjust_entry_info {last_id;starts_with;pattern} = 
-    let starts_with = "^" ^ starts_with 
-    and pattern = if pattern = "~empty~" then "" else pattern in
+    let starts_with = "^" ^ starts_with in
+    let pattern = adjust_pattern pattern in
     {last_id; starts_with; pattern}

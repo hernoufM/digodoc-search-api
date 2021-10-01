@@ -7,4 +7,5 @@
  (name data_common)
  (public_name search-api.data_common)
  (wrapped false)
+ (libraries uri)
  (modules data_types utils))

@@ -16,7 +16,8 @@ module Args = struct
       ~name:"entry_info" 
       ~destruct:(fun str ->
         match String.split_on_char '+' str with
-        | last_id :: starts_with :: pattern ::_ -> Ok {last_id=Int64.of_string last_id; starts_with; pattern}
+        | last_id :: starts_with :: pattern_l -> 
+          Ok {last_id=Int64.of_string last_id; starts_with; pattern=String.concat "+" pattern_l}
         | _ -> Error "Not recognized data_type : str"
       )
       ~construct:(fun {last_id;starts_with;pattern} ->
