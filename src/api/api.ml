@@ -8,7 +8,6 @@ module MakeRegisterer(S: module type of Services)(H:module type of Handlers) = s
 
   let register dir =
     dir
-    |> register S.version H.version
     |> register S.package_entries H.package_entries
     |> register S.library_entries H.library_entries
     |> register S.meta_entries H.meta_entries

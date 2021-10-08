@@ -1,7 +1,5 @@
 open Data_types
 
-let version_of_rows = function [ Some v ] -> Int32.to_int v | _ -> 0
-
 let path_of_opam opam_name opam_version =
     Printf.sprintf "docs/OPAM.%s.%s/index.html" opam_name opam_version
 

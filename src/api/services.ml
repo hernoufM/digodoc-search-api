@@ -43,13 +43,6 @@ module Args = struct
   let entry = Arg.string  ~example:"modules" ~descr:"Name of entry" "entry"*)
 end
 
-let version : (version, exn, no_security) service0 =
-  service
-    ~section:section_main
-    ~name:"version"
-    ~output:version
-    Path.(root // "version")
-
 let package_entries : (entry_info,packages,exn,no_security) service1 = 
   service
     ~section:section_main

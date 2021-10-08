@@ -3,11 +3,6 @@ open Misc_db
 open Db_lwt
 open Data_types
 
-let get_version () =
-  with_dbh >>> fun dbh ->
-  [%pgsql dbh "select value from ezpg_info where name = 'version'"]
-  >|= version_of_rows
-
 let get_opam_info dbh opam_name =
   [%pgsql.object dbh "select opam_name,opam_version 
                       from opam_index 

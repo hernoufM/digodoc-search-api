@@ -4,10 +4,6 @@ open Utils
 
 let to_api p = Lwt.bind p EzAPIServerUtils.return
 
-let version _params () = to_api (
-    Db.get_version () >|= fun v_db_version ->
-    Ok { v_db = PConfig.database; v_db_version })
-
 let package_entries (_params, entry_info) () =  to_api (
     Db.get_packages (adjust_entry_info entry_info) >|= fun packages ->
     Ok packages)
