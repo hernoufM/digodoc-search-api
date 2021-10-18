@@ -11,7 +11,7 @@ type nonrec opam_entry = {
 }
 
 type nonrec packages = opam_entry list
-
+(*  *)
 type nonrec lib_entry = {
   name : string;
   path : string;
@@ -49,7 +49,25 @@ type nonrec source_entry = {
 
 type nonrec sources = source_entry list
 
-type nonrec val_entry = {
+type entries =
+  | Opam of packages
+  | Lib of libraries
+  | Mdl of modules
+  | Meta of metas
+  | Src of sources
+
+type entry_type = PACK | LIB | MOD | META | SRC
+
+type pattern = string
+
+type entry_info = {
+  mutable entry : entry_type;
+  mutable last_id: int;
+  mutable starts_with : string;
+  mutable pattern: pattern;
+}
+
+type nonrec val_element = {
   ident : string;
   value : string;
   mdl : string;
@@ -58,24 +76,34 @@ type nonrec val_entry = {
   opampath : string;
 }
 
-type nonrec vals = val_entry list
+type nonrec vals = val_element list
 
-type entry_info = {
-  last_id: int64;
-  starts_with : string;
-  pattern: string;
+type ocaml_elements =
+  | Val of vals
+
+type element_type = VAL
+
+type condition =
+  | In_opam of pattern
+  | In_mdl of pattern
+
+type search_mode =
+  | Regex
+  | Text
+type element_info = {
+  element : element_type;
+  last_id : int;
+  pattern : pattern;
+  mode : search_mode;
+  conditions : condition list
 }
 
+type info = 
+  | Entry of entry_info
+  | Element of element_info
 
-type entry_type = 
-  | PACK
-  | LIB
-  | MOD
-  | META
-  | SRC
-  | VAL
-type command =
-  | Count of entry_type
+
+type command = Count 
 
 type command_result = {
   result : string;
@@ -86,3 +114,7 @@ type search_result = {
   libraries : libraries;
   modules : modules;
 }
+
+type server_error =
+  | Invalid_regex 
+  | Unknown

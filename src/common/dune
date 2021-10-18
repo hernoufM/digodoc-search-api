@@ -7,5 +7,11 @@
  (name data_common)
  (public_name search-api.data_common)
  (wrapped false)
- (libraries uri)
- (modules data_types utils))
+ (modules data_types))
+
+(library
+ (name utils)
+ (public_name search-api.utils)
+ (wrapped false)
+ (libraries data_common uri ez_subst)
+ (modules utils utilsConversion))

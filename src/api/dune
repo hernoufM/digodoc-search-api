@@ -4,7 +4,7 @@
  (wrapped false)
  (modules encoding services)
  (preprocess (pps ppx_deriving_encoding))
- (libraries ez_api data_common))
+ (libraries ez_api ez_subst data_common utils ))
 
 (library
  (name api_lib)

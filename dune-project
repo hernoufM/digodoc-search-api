@@ -19,6 +19,7 @@
   geoip
   cohttp-lwt-unix
   re
+  ez_subst
   (pgocaml_ppx ( >= 4.3.0))
   ez_pgocaml
   (ppx_deriving_encoding ( >= 0.2.2 ))

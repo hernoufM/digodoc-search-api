@@ -5,106 +5,92 @@ open EzAPI
 let section_main = Doc.section "API"
 let sections = [ section_main ]
 
-
 module Args = struct
-  let pattern = Arg.string ~descr:"Pattern of entry" ~example:"zarith" "pattern"   
+  open UtilsConversion
 
+  let entry_info_ex =  {
+    entry=PACK; 
+    last_id=0; 
+    starts_with="."; 
+    pattern="zarith"
+  } 
+
+  let element_info_ex = {
+    element=VAL;
+    last_id=0;
+    pattern="to_str.ng"; 
+    mode=Regex; 
+    conditions=[In_opam "zarith"; In_mdl "Z"]
+  }
+
+  let pattern = Arg.string ~descr:"Pattern of entry" ~example:"zarith" "pattern"   
+  
   let entry_info = 
     Arg.make
-      ~example:{last_id=Int64.of_int 0;starts_with=".";pattern="~empty~"} 
+      ~example: entry_info_ex
       ~descr:"Entry info for Search API"
       ~name:"entry_info" 
-      ~destruct:(fun str ->
-        match String.split_on_char '+' str with
-        | last_id :: starts_with :: pattern_l -> 
-          Ok {last_id=Int64.of_string last_id; starts_with; pattern=String.concat "+" pattern_l}
-        | _ -> Error "Not recognized data_type : str"
-      )
-      ~construct:(fun {last_id;starts_with;pattern} ->
-        Printf.sprintf "%d+%s+%s" (Int64.to_int last_id) starts_with pattern
-      )
+      ~destruct:(to_result ~convf:Utils.entry_info_of_string)
+      ~construct:Utils.entry_info_to_string
+      ()
+
+  let element_info =
+    Arg.make
+      ~example:element_info_ex
+      ~descr:"Element info for Search API"
+      ~name:"element_info" 
+      ~destruct:(to_result ~convf:Utils.element_info_of_string)
+      ~construct:Utils.element_info_to_string
       ()
 
   let command = 
     Arg.make
-      ~example:(Count META)
+      ~example:Count
       ~descr:"Name of command to execute by Search API"
       ~name:"command" 
-      ~destruct:(fun str -> 
-          try
-            Ok (Utils.command_of_string str)
-          with Failure s -> Error s)
+      ~destruct:(to_result ~convf:Utils.command_of_string)
       ~construct:Utils.command_to_string
       ()
-  (*
-  let last_id = Arg.Arg.int ~example:1 ~descr:"Last ID of module" "last_id"
-  let pattern = Arg.string ~example:"toto" ~descr:"Search pattern" "pattern"
-  let command = Arg.string ~example:"count" ~descr:"API Command" "command"
-  let entry = Arg.string  ~example:"modules" ~descr:"Name of entry" "entry"*)
+
+  let info =
+    Arg.make
+      ~example:(Element element_info_ex)
+      ~descr:"Information about data used for global commands"
+      ~name:"info" 
+      ~destruct:(to_result ~convf:Utils.info_of_srting)
+      ~construct:Utils.info_to_string
+      ()
+  
 end
 
-let package_entries : (entry_info,packages,exn,no_security) service1 = 
+let entries : (entry_info, entries, server_error, no_security) service1 =
   service
     ~section:section_main
-    ~name:"packages"
-    ~descr:"Packages"
-    ~output:packages
-    Path.(root // "packages" /: Args.entry_info)
+    ~name:"entries"
+    ~descr:"Get entries basing on information specified in argument"
+    ~output:entries
+    Path.(root // "entries" /: Args.entry_info)
 
-let library_entries : (entry_info,libraries,exn,no_security) service1 = 
+let elements : (element_info,ocaml_elements,server_error,no_security) service1 = 
   service
     ~section:section_main
-    ~name:"libraries"
-    ~descr:"Libraries"
-    ~output:libraries
-    Path.(root // "libraries" /: Args.entry_info)
+    ~name:"elements"
+    ~descr:"Get ocaml elements basing on information specified in argument"
+    ~output:ocaml_elements
+    Path.(root // "elements" /: Args.element_info)
 
-let meta_entries : (entry_info,metas,exn,no_security) service1 = 
-  service
-    ~section:section_main
-    ~name:"metas"
-    ~descr:"Metas"
-    ~output:metas
-    Path.(root // "metas" /: Args.entry_info)
-
-
-let module_entries : (entry_info,modules,exn,no_security) service1 = 
-  service
-    ~section:section_main
-    ~name:"modules"
-    ~descr:"Modules"
-    ~output:modules
-    Path.(root // "modules" /: Args.entry_info)
-
-
-let source_entries : (entry_info,sources,exn,no_security) service1 = 
-  service
-    ~section:section_main
-    ~name:"sources"
-    ~descr:"Sources"
-    ~output:sources
-    Path.(root // "sources" /: Args.entry_info)
-
-let val_entries : (entry_info,vals,exn,no_security) service1 = 
-  service
-    ~section:section_main
-    ~name:"vals"
-    ~descr:"Vals"
-    ~output:vals
-    Path.(root // "vals" /: Args.entry_info)
-
-let exec_command : (command, entry_info, command_result, exn, no_security) service2 = 
+let exec_command : (command, info, command_result, server_error, no_security) service2 = 
   service
     ~section:section_main
     ~name:"command"
-    ~descr:"Execute command with given entry info"
+    ~descr:"Execute command with given info in arguments"
     ~output:command_result_enc
-    Path.(root // "command" /: Args.command /: Args.entry_info)
+    Path.(root // "command" /: Args.command /: Args.info)
 
-let search : (string,search_result,exn,no_security) service1 =
+let search : (pattern,search_result,server_error,no_security) service1 =
   service
     ~section:section_main
     ~name:"search"
-    ~descr:"Search entries (returns result, when number of entries <= 10)"
+    ~descr:"Search entries (only 10 results returned)"
     ~output:search_result_enc
     Path.(root // "search" /: Args.pattern)

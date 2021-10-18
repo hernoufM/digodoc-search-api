@@ -4,6 +4,12 @@ open Data_types
 
 let api_config = obj1 (opt "port" int)
 
+let info_encoding = conv
+    (fun {www_apis} -> www_apis)
+    (fun www_apis -> {www_apis}) @@
+  obj1
+    (req "apis" (list string))
+
 type nonrec opam_entry = Data_types.opam_entry = {
   name : string;
   path : string;
@@ -50,7 +56,38 @@ type nonrec source_entry = Data_types.source_entry = {
 
 let sources = list source_entry_enc
 
-type nonrec val_entry = Data_types.val_entry = {
+let entries =
+  let cases =
+    [case 
+      ~title:"Opam" 
+      packages 
+      (function | Opam s -> Some s | _ -> None )
+      (function s -> Opam s);
+    case 
+      ~title:"Lib" 
+      libraries 
+      (function | Lib s -> Some s | _ -> None )
+      (function s -> Lib s);
+    case 
+      ~title:"Mdl" 
+      modules
+      (function | Mdl s -> Some s | _ -> None )
+      (function s -> Mdl s);
+    case 
+      ~title:"Meta" 
+      metas
+      (function | Meta s -> Some s | _ -> None )
+      (function s -> Meta s);
+    case 
+      ~title:"Src" 
+      sources
+      (function | Src s -> Some s | _ -> None )
+      (function s -> Src s)
+    ]
+  in
+    union cases 
+    
+type nonrec val_entry = Data_types.val_element = {
   ident : string;
   value : string;
   mdl : string;
@@ -61,6 +98,17 @@ type nonrec val_entry = Data_types.val_entry = {
 
 let vals = list val_entry_enc 
 
+let ocaml_elements = 
+  let cases =
+    [case 
+      ~title:"Val" 
+      vals 
+      (function Val s -> Some s)
+      (function s -> Val s)
+    ]
+  in
+    union cases
+  
 type command_result = Data_types.command_result = {
   result : string;
 } [@@deriving json_encoding]
