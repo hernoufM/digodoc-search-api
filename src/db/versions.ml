@@ -29,6 +29,7 @@ let register_version ?version
 let init () =
 
   register_version ()
+    (* list of instructions to execute to upgrade DB *)
     ~upgrade:[
 
       {|create table opam_index(
@@ -71,6 +72,7 @@ let init () =
       )|}
 
     ]
+    (* list of instructions to execute to downgrade DB *)
     ~downgrade:[
       {|ALTER TABLE library_index DROP CONSTRAINT library_index_lib_opam_fkey|};
       {|ALTER TABLE meta_index DROP CONSTRAINT meta_index_meta_opam_fkey|};

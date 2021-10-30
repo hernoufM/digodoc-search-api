@@ -6,6 +6,7 @@ open Db
 let to_api p = Lwt.bind p EzAPIServerUtils.return
 
 let entries (_params, entry_info) () =  to_api (
+    let entry_info = entry_info in
     match entry_info.entry with
     | PACK -> 
         Entries.get_packages entry_info >|= fun packages ->

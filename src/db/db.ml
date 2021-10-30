@@ -113,7 +113,6 @@ module Elements = struct
                       where mdl_name=$mdl"]
 
 
-
   let get_conditions_from_rows {conditions} =
     with_dbh >>> fun dbh ->
     let mdls = ref []
@@ -163,7 +162,7 @@ module Elements = struct
           let opam_name = row#mdl_opam_name in 
           let%lwt opam_row = get_opam_info dbh opam_name in
           let%lwt mdl_row = get_mdl_info_id dbh row#mdl_id in
-          Lwt.return (val_of_row conditions row opam_row mdl_row))
+          Lwt.return (val_of_row_opt conditions row opam_row mdl_row))
         rows
 end
 

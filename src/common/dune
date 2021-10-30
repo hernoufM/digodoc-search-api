@@ -14,4 +14,4 @@
  (public_name search-api.utils)
  (wrapped false)
  (libraries data_common uri ez_subst)
- (modules utils utilsConversion))
+ (modules utils utilsEncoding))
