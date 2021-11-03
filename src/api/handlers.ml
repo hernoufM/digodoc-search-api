@@ -5,10 +5,19 @@ open Db
 
 let to_api p = Lwt.bind p EzAPIServerUtils.return
 
-let entries (_params, entry_info) () =  to_api (
-    let entry_info = entry_info in
+let catch_server_error f = 
+    Lwt.catch f
+    @@ (fun err -> Printf.eprintf "catch_server_error %s\n" (Printexc.to_string_default err); 
+    flush stderr;
+    match err with 
+    | Search_api_error Invalid_regex -> Printf.eprintf "Invalid_regex\n"; flush stderr; EzAPIServerUtils.Answer.return ~code:500 (Error Invalid_regex)
+    | Search_api_error Unknown -> Printf.eprintf "Unknown\n"; flush stderr; EzAPIServerUtils.Answer.return ~code:500 (Error Unknown) 
+    | _ -> Printf.eprintf "Another\n"; flush stderr; EzAPIServerUtils.Answer.return ~code:500 (Error Unknown))
+
+let entries (_params, (entry_info)) () = catch_server_error @@ fun () -> to_api (
+    Printf.eprintf "Handler entries\n"; flush stderr;
     match entry_info.entry with
-    | PACK -> 
+    | PACK ->
         Entries.get_packages entry_info >|= fun packages ->
         Ok (Opam packages)
     | LIB ->
@@ -22,27 +31,31 @@ let entries (_params, entry_info) () =  to_api (
         Ok (Meta metas)
     | SRC ->
         Entries.get_sources entry_info >|= fun sources ->
+            Printf.eprintf "Ok sources of length %d\n" (List.length sources); flush stderr;
         Ok (Src sources)
 )
 
-let elements (_params, element_info) () =  to_api (
+let elements (_params, element_info) () =  catch_server_error @@ fun () -> to_api (
     Elements.get_conditions_from_rows element_info >>= fun conditions ->
     match element_info.element with
     | VAL -> 
         Elements.get_vals conditions element_info >|= fun vals ->
         Ok (Val vals))
 
-let exec_command ((_params, command), info)  () =  to_api (
+let exec_command ((_params, command), info)  () =  catch_server_error @@ fun () -> to_api (
+    Printf.eprintf "Handler commands\n"; flush stderr;
     match command,info with
     | Count,Entry entry_info -> 
         Commands.count_entries entry_info  >|= fun result ->
+            Printf.eprintf "Ok exec_command of result %d\n" (result); flush stderr;
             Ok {result=string_of_int result}
     | Count,Element element_info ->
         Elements.get_conditions_from_rows element_info >>= fun conditions ->
         Commands.count_elements conditions element_info  >|= fun result ->
             Ok {result=string_of_int result})
 
-let search  (_params, (pattern:pattern)) () = to_api (
+let search  (_params, (pattern:pattern)) () = catch_server_error @@ fun () -> to_api (
+    Printf.eprintf "pattern= %s\n" pattern; flush stderr;
     let%lwt packages = Search.search_packages pattern 
     and libraries = Search.search_libraries pattern 
     and modules = Search.search_modules pattern 

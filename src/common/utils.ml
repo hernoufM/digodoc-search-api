@@ -5,14 +5,10 @@ open Data_types
 (** Conversion usefull functions *)
 module Conv = UtilsEncoding 
 
-let pattern_of_string : ?uri:bool-> string -> pattern =
-    fun ?(uri=false) str ->
-        Conv.PathSegment.decode ~uri str
+let pattern_of_string : string -> pattern = Conv.PathSegment.decode 
 (** Pattern decoding *)
     
-let pattern_to_string : pattern -> string = 
-    fun pattern ->
-        Conv.PathSegment.encode pattern
+let pattern_to_string : pattern -> string = Conv.PathSegment.encode
 (** Pattern encoding *)
 
 let entry_type_of_string = function 
@@ -35,13 +31,12 @@ let entry_type_to_string = function
 let entry_info_of_string str =
     (* split on separator between path segments *)
     match String.split_on_char '+' str with
-    | "entry"::entry::last_id::starts_with::pattern::[] ->
+    | "entry"::entry::last_id::starts_with::patt::[] ->
         let entry = entry_type_of_string entry
         and last_id = int_of_string last_id
-        and pattern = pattern_of_string pattern
+        and pattern = pattern_of_string patt
         and starts_with = Uri.pct_decode starts_with
-        in
-            {entry; last_id; starts_with; pattern}
+        in {entry; last_id; starts_with; pattern}
     | _ -> failwith ("Not valid entry info : " ^ str)  
 (** Conversion from [string] to [entry_info]. Raises [Failure] if can't convert to [entry_info]. *)
 

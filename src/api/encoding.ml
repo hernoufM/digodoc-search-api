@@ -29,7 +29,7 @@ type nonrec lib_entry = Data_types.lib_entry = {
 let libraries = list lib_entry_enc
 
 type nonrec meta_entry = Data_types.meta_entry = {
-  name : string ;
+  namemeta : string ;
   path : string ;
   opam : string ;
   opampath : string ;
@@ -48,7 +48,7 @@ type nonrec module_entry = Data_types.module_entry = {
 let modules = list module_entry_enc 
 
 type nonrec source_entry = Data_types.source_entry = {
-  name : string;
+  namesrc : string;
   path : string;
   opam : string;
   opampath : string;
@@ -118,3 +118,19 @@ type search_result = Data_types.search_result = {
   libraries : lib_entry list;
   modules : module_entry list;
 } [@@deriving json_encoding]
+
+let server_error_type = 
+  let cases =
+    [case 
+      ~title:"Invalid_regex" 
+       empty
+      (function | Invalid_regex -> Some () | _ -> None)
+      (function () -> Invalid_regex);
+    case 
+      ~title:"Unknown" 
+       empty
+      (function | Unknown -> Some () | _ -> None)
+      (function () -> Unknown)
+    ]
+  in
+    union cases 

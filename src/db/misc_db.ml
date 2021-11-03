@@ -1,5 +1,17 @@
 open Data_types
 
+let catch_db_error f =
+    Lwt.catch f
+    @@ (fun err ->
+        (* TODO: Catch correctly PGOCaml.PostgreSQL_Error *)
+        Printf.eprintf "catch_db_error\n"; flush stderr;
+        match err with
+        | Db_lwt.PGOCaml.PostgreSQL_Error _ -> (Printf.eprintf "PostgreSQL_Error\n"; flush stderr;
+        Lwt.fail @@ search_api_error Invalid_regex)
+        | exn -> Printf.eprintf "Another error : %s\n" (Printexc.to_string exn); 
+            flush stderr;Lwt.fail @@ search_api_error Unknown)
+(** Catches DB excetpions and raises [Search_api_error] coresponding to DB error *)
+
 let path_of_opam opam_name opam_version =
     Printf.sprintf "docs/OPAM.%s.%s/index.html" opam_name opam_version
 (** Computes path to package documentation *)
@@ -51,7 +63,7 @@ let meta_of_row row opam_row : meta_entry =
     and opampath = path_of_opam opam_row#opam_name opam_row#opam_version 
     and opam = name_of_opam opam_row#opam_name opam_row#opam_version
     in
-        {name = row#meta_name;
+        {namemeta = row#meta_name;
         path;
         opam;
         opampath} 
@@ -77,12 +89,12 @@ let module_of_row row opam_row lib_rows =
 
 let sources_of_rows rows : sources =
     List.map (function row -> 
-        let name = row#opam_name
+        let namesrc = row#opam_name
         and path = path_of_src row#opam_name row#opam_version
         and opam = name_of_opam row#opam_name row#opam_version
         and opampath = path_of_opam row#opam_name row#opam_version in
         {
-            name;
+            namesrc;
             path;
             opam;
             opampath

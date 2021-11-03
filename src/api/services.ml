@@ -63,34 +63,54 @@ module Args = struct
   
 end
 
-let entries : (entry_info, entries, server_error, no_security) service1 =
+module Errors = struct
+  let server_errors = 
+    [Err.make
+      ~code:500
+      ~name:"Invalid_regex"
+      ~encoding:Json_encoding.unit
+      ~select:(function Invalid_regex -> Some () | _ -> None)
+      ~deselect:(fun () -> Invalid_regex);
+    Err.make
+      ~code:500
+      ~name:"Unknown"
+      ~encoding:Json_encoding.unit
+      ~select:(function Unknown -> Some () | _ -> None)
+      ~deselect:(fun () -> Unknown)]
+end 
+
+let entries : (entry_info, entries, server_error_type, no_security) service1 =
   service
     ~section:section_main
     ~name:"entries"
     ~descr:"Get entries basing on information specified in argument"
     ~output:entries
+    ~errors:Errors.server_errors
     Path.(root // "entries" /: Args.entry_info)
 
-let elements : (element_info,ocaml_elements,server_error,no_security) service1 = 
+let elements : (element_info,ocaml_elements,server_error_type,no_security) service1 = 
   service
     ~section:section_main
     ~name:"elements"
     ~descr:"Get ocaml elements basing on information specified in argument"
     ~output:ocaml_elements
+    ~errors:Errors.server_errors
     Path.(root // "elements" /: Args.element_info)
 
-let exec_command : (command, info, command_result, server_error, no_security) service2 = 
+let exec_command : (command, info, command_result, server_error_type, no_security) service2 = 
   service
     ~section:section_main
     ~name:"command"
     ~descr:"Execute command with given info in arguments"
     ~output:command_result_enc
+    ~errors:Errors.server_errors
     Path.(root // "command" /: Args.command /: Args.info)
 
-let search : (pattern,search_result,server_error,no_security) service1 =
+let search : (pattern,search_result,server_error_type,no_security) service1 =
   service
     ~section:section_main
     ~name:"search"
     ~descr:"Search entries (only 10 results returned)"
     ~output:search_result_enc
+    ~errors:Errors.server_errors
     Path.(root // "search" /: Args.pattern)

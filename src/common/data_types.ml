@@ -30,7 +30,7 @@ type nonrec libraries = lib_entry list
 (** List of library entries *)
 
 type nonrec meta_entry = {
-  name : string ;
+  namemeta : string ;
   path : string ;
   opam : string ;
   opampath : string ;
@@ -53,7 +53,7 @@ type nonrec modules = module_entry list
 (** List of module entries *)
 
 type nonrec source_entry = {
-  name : string;
+  namesrc : string;
   path : string;
   opam : string;
   opampath : string;
@@ -103,9 +103,23 @@ type search_result = {
 }
 (** Result of [search] service *)
 
-type server_error =
+(** {1 Exceptions} *)
+
+type server_error_type =
   | Invalid_regex 
   | Unknown
+(** Possible error types that search-api can raise *)
+
+exception Search_api_error of server_error_type
+(** Search api exception. When raised by server code
+    ez_api encapsulate it inside [EzReq_lwt_S.KnownError]. *)
+
+let search_api_error typ = Search_api_error typ
+(** Encapsulate server_error_type *)
+
+let server_error_type (Search_api_error typ) = typ 
+(** Decapsulate server_error_type *)
+
 (** {1 Argument types} *)
 
 type entry_type = PACK | LIB | MOD | META | SRC
