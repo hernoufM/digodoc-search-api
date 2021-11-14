@@ -1,16 +1,19 @@
 open Data_types
 
+(** Module that defines auxillary functions to :
+    - Catches DB errors and converts it to [Data_types.Search_api_error].
+    - Converts DB rows to a specific OCaml data structure. *)
+
 let catch_db_error f =
     Lwt.catch f
     @@ (fun err ->
-        (* TODO: Catch correctly PGOCaml.PostgreSQL_Error *)
         Printf.eprintf "catch_db_error\n"; flush stderr;
         match err with
         | Db_lwt.PGOCaml.PostgreSQL_Error _ -> (Printf.eprintf "PostgreSQL_Error\n"; flush stderr;
         Lwt.fail @@ search_api_error Invalid_regex)
         | exn -> Printf.eprintf "Another error : %s\n" (Printexc.to_string exn); 
             flush stderr;Lwt.fail @@ search_api_error Unknown)
-(** Catches DB excetpions and raises [Search_api_error] coresponding to DB error *)
+(** Catches DB excetpions and raises [Data_types.Search_api_error] coresponding to DB error *)
 
 let path_of_opam opam_name opam_version =
     Printf.sprintf "docs/OPAM.%s.%s/index.html" opam_name opam_version
@@ -102,6 +105,7 @@ let sources_of_rows rows : sources =
     ) rows
 (** Creates [Data_types.sources] from DB rows *)
 
+(* TODO: to rewrite/delete conditions:  *)
 module Cond = struct 
 
     type opam_cond = string
@@ -151,13 +155,13 @@ module Cond = struct
     (** Makes union of two module condition lists *)
 
     let check_validity opam_conds mdl_conds =
-        List.for_all (fun (mdl,opam) ->
+        List.for_all (fun (_,opam) ->
                 if opam_conds <> []
                 then mem_pack (make_opam_cond opam) opam_conds
                 else true
             )
             mdl_conds
-    (** Says if module condition list is valid versus against condition list.  
+    (** Says if module condition list is valid versus opam condition list.  
         It's means that every module's package appears in the opam condition list *)
 
     let respect_opam_conditions opam opam_conds =
@@ -205,7 +209,7 @@ let val_of_row_opt
 let count_from_row = function [ Some v ] -> Int64.to_int v | _ -> 0
 (** Extracts result of command 'count' from DB row *)
 
-let count_elements_in_rows (in_packs, in_mdls) opam_row mdl_row row cpt =
+let count_elements_in_rows (in_packs, in_mdls) opam_row mdl_row _row cpt =
     let open Cond in
     let opam_row = List.hd opam_row 
     and mdl_row = List.hd mdl_row in

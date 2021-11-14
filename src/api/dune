@@ -1,6 +1,6 @@
 (library
  (name api_services)
- (public_name search-api.api_services)
+ (public_name digodoc-search-api.services)
  (wrapped false)
  (modules encoding services)
  (preprocess (pps ppx_deriving_encoding))
@@ -10,15 +10,16 @@
  (name api_lib)
  (wrapped false)
  (modules handlers api)
- (libraries ez_api.server api_services db_lwt)
+ (libraries ez_api.server api_services db)
  (preprocess (pps lwt_ppx)))
 
 (executable
  (name api_server)
+ (public_name digodoc_search_api)
  (modules api_server)
  (libraries api_lib))
 
 (executable
  (name openapi)
- (modules openapi doc)
+ (modules openapi)
  (libraries api_lib ez_api.openAPI))

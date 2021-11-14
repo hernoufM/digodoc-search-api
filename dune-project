@@ -1,18 +1,22 @@
 (lang dune 2.4)
-(name search-api)
+(name digodoc-search-api)
 
-(source (uri git://gitlab.com/o-labs/skeleton))
+; TODO : ocamlpro repository 
+(source (github hernoufM/digodoc-search-api))
+
+; TODO : ocamlpro licence
 (license MIT)
-(authors "John Doe")
-(maintainers "john.doe@origin-labs.com")
-(homepage https://gitlab.com/o-labs/skeleton)
-(bug_reports https://gitlab.com/o-labs/skeleton/-/issues)
+
+(authors "Mohamed Hernouf")
+(maintainers "mohamed.hernouf@ocamlpro.com")
+(homepage https://github.com/hernoufM/digodoc-search-api)
+(bug_reports https://github.com/hernoufM/digodoc-search-api/issues)
 
 (generate_opam_files true)
 
 (package
- (name search-api)
- (synopsis "Search engine for digodoc entries")
+ (name digodoc-search-api)
+ (synopsis "Search API server for digodoc DB")
  (depends
   ez_api
   calendar

@@ -26,7 +26,7 @@ make init
 You can set up your project configuration (name, web server ports, ect..) by creating a file Makefile.config with these optional fields:
 ```
 PROJECT_NAME=skeleton              # name of your project
-DATABASE:=skeleton                 # name of your database
+PGDATABASE:=skeleton                 # name of your database
 WEB_HOST:=http://localhost:8888    # external address of your WEB server
 API_HOST:=http://localhost:8080    # external address of your API server
 API_PORT:=8080                     # internal port of your API server
