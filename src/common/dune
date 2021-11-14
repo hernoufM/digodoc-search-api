@@ -1,17 +1,18 @@
 (library
  (name misc)
+ (public_name digodoc-search-api.misc)
  (modules misc)
- (libraries project_config stdlib-shims))
+ (libraries config stdlib-shims))
 
 (library
  (name data_common)
- (public_name search-api.data_common)
+ (public_name digodoc-search-api.data_common)
  (wrapped false)
  (modules data_types))
 
 (library
  (name utils)
- (public_name search-api.utils)
+ (public_name digodoc-search-api.utils)
  (wrapped false)
  (libraries data_common uri ez_subst)
  (modules utils utilsEncoding))

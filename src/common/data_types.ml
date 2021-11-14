@@ -1,3 +1,4 @@
+
 (** Module [Data_types] defines all server-side types also used by user-side application *)
 
 (** {1 Return types} *)
@@ -63,14 +64,13 @@ type nonrec source_entry = {
 type nonrec sources = source_entry list
 (** List of source entries *)
 
-type entries =
+(** Type that regroups every entry that is a component of OCaml ecosystem (package, library, module, etc.). Result of [getEntries] service. *)
+type entries = 
   | Opam of packages
   | Lib of libraries
   | Mdl of modules
   | Meta of metas
   | Src of sources
-(** Type that regroups every entry that is a component of OCaml 
-  ecosystem (package, library, module, etc.). Result of [getEntries] service. *)
 
 type nonrec val_element = {
   ident : string;
@@ -85,11 +85,11 @@ type nonrec val_element = {
 type nonrec vals = val_element list
 (** List of value elements *)
 
-type ocaml_elements =
-  | Val of vals
+
 (** Type that regroups every element that is a component of a 
     module (val, type, class, etc.). Result of [getElements] service *)
-
+type ocaml_elements =
+  | Val of vals
 
 type command_result = {
   result : string;
@@ -105,28 +105,31 @@ type search_result = {
 
 (** {1 Exceptions} *)
 
+(** Possible error types that search-api can raise *)
 type server_error_type =
   | Invalid_regex 
   | Unknown
-(** Possible error types that search-api can raise *)
 
-exception Search_api_error of server_error_type
 (** Search api exception. When raised by server code
     ez_api encapsulate it inside [EzReq_lwt_S.KnownError]. *)
+exception Search_api_error of server_error_type
 
-let search_api_error typ = Search_api_error typ
 (** Encapsulate server_error_type *)
+let search_api_error typ = Search_api_error typ
 
-let server_error_type (Search_api_error typ) = typ 
+let server_error_type err =
+  match err with 
+  | Search_api_error typ -> typ
+  | _ -> Unknown 
 (** Decapsulate server_error_type *)
 
 (** {1 Argument types} *)
 
-type entry_type = PACK | LIB | MOD | META | SRC
 (** Entry type *)
+type entry_type = PACK | LIB | MOD | META | SRC
 
-type element_type = VAL
 (** Element type *)
+type element_type = VAL
 
 type pattern = string
 (** Search pattern *)
@@ -139,15 +142,15 @@ type entry_info = {
 }
 (** Entry info, that is used to customise entry search. *)
 
+(** Condition attached to an OCaml element *)
 type condition =
   | In_opam of pattern
   | In_mdl of pattern
-(** Condition attached to an OCaml element *)
 
+(** Search mode that determines how to handle correctly an element pattern *)
 type search_mode =
   | Regex
   | Text
-(** Search mode that determines how to handle correctly an element pattern *)
 
 type element_info = {
   element : element_type;
@@ -158,11 +161,11 @@ type element_info = {
 }
 (** Element info, that is used to customise element search. *)
 
+(* Type that regroups [entry_info] and [element_info]. 
+   Used by services that handle both : entries and elements. *)
 type info = 
   | Entry of entry_info
   | Element of element_info
-(* Type that regroups [entry_info] and [element_info]. 
-   Used by services that handle both : entries and elements. *)
 
-type command = Count 
 (** All commands that could be executed with service [exec_command]. *)
+type command = Count 

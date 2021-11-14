@@ -1,14 +1,7 @@
 open Json_encoding
 open Data_types
 
-
 let api_config = obj1 (opt "port" int)
-
-let info_encoding = conv
-    (fun {www_apis} -> www_apis)
-    (fun www_apis -> {www_apis}) @@
-  obj1
-    (req "apis" (list string))
 
 type nonrec opam_entry = Data_types.opam_entry = {
   name : string;
@@ -16,7 +9,7 @@ type nonrec opam_entry = Data_types.opam_entry = {
   version : string;
   synopsis : string;
 } [@@deriving json_encoding]
-    
+
 let packages = list opam_entry_enc
 
 type nonrec lib_entry = Data_types.lib_entry = {
@@ -86,7 +79,7 @@ let entries =
     ]
   in
     union cases 
-    
+
 type nonrec val_entry = Data_types.val_element = {
   ident : string;
   value : string;
@@ -108,7 +101,7 @@ let ocaml_elements =
     ]
   in
     union cases
-  
+
 type command_result = Data_types.command_result = {
   result : string;
 } [@@deriving json_encoding]
@@ -118,19 +111,3 @@ type search_result = Data_types.search_result = {
   libraries : lib_entry list;
   modules : module_entry list;
 } [@@deriving json_encoding]
-
-let server_error_type = 
-  let cases =
-    [case 
-      ~title:"Invalid_regex" 
-       empty
-      (function | Invalid_regex -> Some () | _ -> None)
-      (function () -> Invalid_regex);
-    case 
-      ~title:"Unknown" 
-       empty
-      (function | Unknown -> Some () | _ -> None)
-      (function () -> Unknown)
-    ]
-  in
-    union cases 

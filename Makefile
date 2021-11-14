@@ -1,19 +1,14 @@
-PROJECT_NAME:=search-api
-DATABASE:=digodoc
+PROJECT_NAME:=digodoc-search-api
 API_HOST:=http://localhost:11001
-API_PORT:=11001
-RLS_DIR:=www
-CONTACT_EMAIL:=
+CONTACT_EMAIL:=mohamed.hernouf@ocamlpro.com
 VERSION:=1.0
-DBVERSION=$(shell psql $(DATABASE) -c "select value from ezpg_info where name='version'" -t -A)
-
--include Makefile.config
+DBVERSION=$(shell psql $(PGDATABASE) -c "select value from ezpg_info where name='version'" -t -A)
 
 .EXPORT_ALL_VARIABLES:
+PGDATABASE:=digodoc
+API_PORT:=11001
 
-PGDATABASE=$(DATABASE)
-
-all: build api-server
+all: build api-server openapi
 
 db-updater:
 	@dune build src/db/db-update
@@ -22,7 +17,14 @@ db-update: db-updater
 	@_build/default/src/db/db-update/db_updater.exe --allow-downgrade --database $(PGDATABASE)
 
 db-downgrade: db-updater
-	_build/default/src/db/db-update/db_updater.exe --allow-downgrade --database $(DATABASE) --target `expr $(DBVERSION) - 1`
+	_build/default/src/db/db-update/db_updater.exe --allow-downgrade --database $(PGDATABASE) --target `expr $(DBVERSION) - 1`
+
+
+docs: build
+	dune build @doc
+	mkdir -p docs
+	rm -rf docs/*  
+	cp -r _build/default/_doc/_html/* docs/.
 
 build: db-update 
 	dune build --profile release
@@ -33,6 +35,7 @@ api-server: _build/default/src/api/api_server.exe
 
 clean:
 	@dune clean
+	rm -rf docs api bin logs
 
 install:
 	@dune install
@@ -40,9 +43,8 @@ install:
 build-deps:
 	@opam install --deps-only .
 
-config/info.json config/api_config.json:
+config/api_config.json:
 	@mkdir -p config
-	@echo "{\"apis\": [\"$(API_HOST)\"]}" > config/info.json
 	@echo "{\"port\": $(API_PORT)}" > config/api_config.json
 
 init: build-deps config
@@ -51,3 +53,11 @@ git-init:
 	rm -rf .git
 	git init
 
+openapi: _build/default/src/api/openapi.exe
+	@_build/default/src/api/openapi.exe --version $(VERSION) --title "$(PROJECT_NAME) API" --contact "$(CONTACT_EMAIL)" --servers "api" $(API_HOST) -o api/openapi.json
+
+view-api: openapi
+	xdg-open 'http://localhost:28881' & redoc-cli serve -p 28881 -w api/openapi.json
+
+view-docs: docs
+	xdg-open 'http://localhost:50001' & php -S localhost:50001 -t docs

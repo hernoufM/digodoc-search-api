@@ -1,13 +1,13 @@
 [Unit]
-Description  = Digodoc Search Engine
+Description  = Digodoc Search API
 Wants        = network-online.target postgresql.service postgresql@.service
 After        = network-online.target postgresql.service postgresql@.service
 
 [Service]
-User         = hernouf
-Group        = hernouf
-ExecStart    = /home/hernouf/Server/digodoc-search-api/scripts/api.sh start
-ExecStop     = /home/hernouf/Server/digodoc-search-api/scripts/api.sh stop
+User         = <user>
+Group        = <group>
+ExecStart    = <path>/digodoc-search-api/scripts/api.sh start
+ExecStop     = <path>/digodoc-search-api/scripts/api.sh stop
 Type         = forking
 Restart      = on-failure
 

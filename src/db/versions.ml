@@ -1,3 +1,5 @@
+(** Module that stores and updates/downgrades differrent versions of DB *)
+
 let cver = ref 0
 let upgrades : (int * (unit PGOCaml.t -> int -> unit)) list ref = ref []
 let downgrades: (int * string list) list ref = ref []
