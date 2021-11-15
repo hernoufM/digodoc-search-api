@@ -8,7 +8,7 @@ DBVERSION=$(shell psql $(PGDATABASE) -c "select value from ezpg_info where name=
 PGDATABASE:=digodoc
 API_PORT:=11001
 
-all: build api-server openapi
+all: build api-server
 
 db-updater:
 	@dune build src/db/db-update
@@ -19,7 +19,6 @@ db-update: db-updater
 db-downgrade: db-updater
 	_build/default/src/db/db-update/db_updater.exe --allow-downgrade --database $(PGDATABASE) --target `expr $(DBVERSION) - 1`
 
-
 docs: build
 	dune build @doc
 	mkdir -p docs
@@ -27,7 +26,7 @@ docs: build
 	cp -r _build/default/_doc/_html/* docs/.
 
 build: db-update 
-	dune build --profile release
+	dune build
 
 api-server: _build/default/src/api/api_server.exe
 	@mkdir -p bin
@@ -54,6 +53,7 @@ git-init:
 	git init
 
 openapi: _build/default/src/api/openapi.exe
+	@mkdir -p api
 	@_build/default/src/api/openapi.exe --version $(VERSION) --title "$(PROJECT_NAME) API" --contact "$(CONTACT_EMAIL)" --servers "api" $(API_HOST) -o api/openapi.json
 
 view-api: openapi

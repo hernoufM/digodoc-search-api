@@ -1,6 +1,6 @@
-./bin
-./logs
+bin
+logs
 *.merlin
 _build
 _opam
-./api
+api
