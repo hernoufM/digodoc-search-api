@@ -7,11 +7,17 @@ license: "MIT"
 homepage: "https://github.com/hernoufM/digodoc-search-api"
 bug-reports: "https://github.com/hernoufM/digodoc-search-api/issues"
 depends: [
-  "dune" {>= "2.4"}
   "ez_api"
+  "odoc"
+  "merlin"
+  "dune"
   "calendar"
   "geoip"
+  "lwt_ppx"
   "cohttp-lwt-unix"
+  "websocket-lwt-unix"
+  "tls"
+  "cohttp-lwt-jsoo"
   "re"
   "ez_subst"
   "pgocaml_ppx" {>= "4.3.0"}

@@ -19,9 +19,16 @@
  (synopsis "Search API server for digodoc DB")
  (depends
   ez_api
+  odoc
+  merlin
+  dune 
   calendar
   geoip
+  lwt_ppx
   cohttp-lwt-unix
+  websocket-lwt-unix
+  tls
+  cohttp-lwt-jsoo
   re
   ez_subst
   (pgocaml_ppx ( >= 4.3.0))

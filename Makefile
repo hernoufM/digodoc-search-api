@@ -2,7 +2,6 @@ PROJECT_NAME:=digodoc-search-api
 API_HOST:=http://localhost:11001
 CONTACT_EMAIL:=mohamed.hernouf@ocamlpro.com
 VERSION:=1.0
-DBVERSION=$(shell psql $(PGDATABASE) -c "select value from ezpg_info where name='version'" -t -A)
 
 .EXPORT_ALL_VARIABLES:
 PGDATABASE:=digodoc
@@ -17,15 +16,20 @@ db-update: db-updater
 	@_build/default/src/db/db-update/db_updater.exe --allow-downgrade --database $(PGDATABASE)
 
 db-downgrade: db-updater
+	$(eval DBVERSION := $(shell psql $(PGDATABASE) -c "select value from ezpg_info where name='version'" -t -A))
 	_build/default/src/db/db-update/db_updater.exe --allow-downgrade --database $(PGDATABASE) --target `expr $(DBVERSION) - 1`
+
+db-version:
+	psql $(PGDATABASE) -c "select value from ezpg_info where name='version'" -t -A
 
 docs: build
 	dune build @doc
+	dune build @doc-private
 	mkdir -p docs
 	rm -rf docs/*  
 	cp -r _build/default/_doc/_html/* docs/.
 
-build: db-update 
+build: db-update
 	dune build
 
 api-server: _build/default/src/api/api_server.exe
@@ -46,7 +50,11 @@ config/api_config.json:
 	@mkdir -p config
 	@echo "{\"port\": $(API_PORT)}" > config/api_config.json
 
-init: build-deps config
+depext:
+	opam install depext -y
+	opam depext geoip -y
+
+init: depext build-deps config
 
 git-init:
 	rm -rf .git
