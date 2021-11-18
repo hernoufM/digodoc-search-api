@@ -1,16 +1,15 @@
 (lang dune 2.4)
 (name digodoc-search-api)
 
-; TODO : ocamlpro repository 
-(source (github hernoufM/digodoc-search-api))
+(source (github OCamlPro/digodoc-search-api))
 
 ; TODO : ocamlpro licence
 (license MIT)
 
 (authors "Mohamed Hernouf")
 (maintainers "mohamed.hernouf@ocamlpro.com")
-(homepage https://github.com/hernoufM/digodoc-search-api)
-(bug_reports https://github.com/hernoufM/digodoc-search-api/issues)
+(homepage https://github.com/OCamlPro/digodoc-search-api)
+(bug_reports https://github.com/OCamlPro/digodoc-search-api/issues)
 
 (generate_opam_files true)
 

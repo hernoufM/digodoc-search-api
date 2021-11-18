@@ -1,7 +1,6 @@
 # Digodoc Search API
 
 Digodoc Search API is a server that makes different type of search throughout [Digodoc](https://ocamlpro.github.io/digodoc/) DB.
-<!-- TODO : OcamlPro API link -->
 
 ## Documentation
 
@@ -38,7 +37,7 @@ make
 To launch the API server:
 
 ```bash
-./bin/api-server config/api_conf.json
+./bin/api-server config/api_config.json
 ```
 
 It should prints to the terminal :
@@ -48,8 +47,8 @@ Starting servers on ports [11001]
 Starting COHTTP server (port: 11001)
 
 ```
-<!-- Link to Digodoc index api -->
-If you haven't installed Digodoc Index API, then your DB tables are not filled yet. So every API service will return an empty result.
+
+If you haven't installed [Digodoc Index API](https://github.com/OCamlPro/digodoc-index-api), then your DB tables are not filled yet. So every API service will return an empty result.
 
 ### Launching on background
 
@@ -79,7 +78,7 @@ To be able launch your server with system boot you should define a corresponding
 
     ```bash
     # copy to other user/system services
-    sudo cp scripts/api.service /etc/systemd/system/
+    sudo cp scripts/digodoc_search_api.service /etc/systemd/system/
     # to boot service with linux
     systemctl enable digodoc_search_api.service
     # to start service
@@ -115,7 +114,7 @@ To downgrade :
 make db_downgrade
 ```
 
-> Warning : Passing to version 0 delete all entries in DB. You will be forced then to refill tables with <!-- TODO: link to digodoc index api --> index api.
+> Warning : Passing to version 0 delete all entries in DB. You will be forced then to refill tables with [Index API](https://github.com/OCamlPro/digodoc-index-api).
 
 ## Api viewer
 
@@ -145,4 +144,4 @@ sudo apt-get install xdg-utils php
 make view-docs
 ```
 
-> Note that only public libraries and their modules will appear on the site despite that private ones are still could be found inside *docs/* directory.
+> Note that only public libraries and their modules will appear on the site despite that private ones are still could be found under the *docs/* directory.
