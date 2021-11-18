@@ -2,6 +2,8 @@ open Lwt.Infix
 open Data_types
 open Db
 
+(** Module that defines behaviour for every service from [Services] module. *)
+
 let to_api p = 
     Lwt.catch
         (fun () -> Lwt.bind p EzAPIServerUtils.return)

@@ -30,7 +30,7 @@ docs: build
 	cp -r _build/default/_doc/_html/* docs/.
 
 build: db-update
-	dune build
+	dune build --profile release
 
 api-server: _build/default/src/api/api_server.exe
 	@mkdir -p bin
@@ -51,7 +51,7 @@ config/api_config.json:
 	@echo "{\"port\": $(API_PORT)}" > config/api_config.json
 
 depext:
-	opam install depext -y
+	opam install opam-depext -y
 	opam depext geoip -y
 
 init: depext build-deps config
