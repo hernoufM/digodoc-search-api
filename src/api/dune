@@ -15,7 +15,6 @@
 
 (executable
  (name api_server)
- (public_name digodoc_search_api)
  (modules api_server)
  (libraries api_lib))
 
