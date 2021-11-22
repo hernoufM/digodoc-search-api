@@ -24,6 +24,13 @@ let server services =
   (* Load config file *)
   Arg.parse [] (fun config_file ->
       load_config config_file) "Search API server" ;
+  (* Load sources DB *)
+  Handlers.(sources_db := Some
+        (Ez_search.V1.EzSearch.load_db 
+          ~db_dir:sources_db_path 
+          ~db_name:sources_db_name 
+          ~use_mapfile:true
+          ())); 
   let servers = [ !api_port, EzAPIServerUtils.API services ] in
   Lwt_main.run (
     (* Prints server's port *)

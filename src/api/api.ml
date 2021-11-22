@@ -15,6 +15,8 @@ module MakeRegisterer(S: module type of Services)(H:module type of Handlers) = s
     |> register S.elements H.elements
     |> register S.exec_command H.exec_command
     |> register S.search H.search
+    |> register S.search_sources H.search_sources
+
 end
 
 module R = MakeRegisterer(Services)(Handlers)

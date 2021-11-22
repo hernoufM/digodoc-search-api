@@ -111,3 +111,17 @@ type search_result = Data_types.search_result = {
   libraries : lib_entry list;
   modules : module_entry list;
 } [@@deriving json_encoding]
+
+type sources_occurence = Data_types.sources_occurence = {
+  opamname : string;
+  srcpath: string;
+  filename: string;
+  occpos: int;
+  occline: string;
+  occpath: string;
+} [@@deriving json_encoding]
+
+type sources_search_result = Data_types.sources_search_result = {
+  totaloccs : int;
+  occs : sources_occurence list
+} [@@deriving json_encoding]

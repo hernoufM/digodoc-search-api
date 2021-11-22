@@ -303,3 +303,10 @@ module Search = struct
   (** Get all the modules that match specified regex pattern. *)
 end
 (** Module that regroups all DB requests for [Handlers.search] handler. *)
+
+module Sources_search = struct
+  let get_src_info name =
+    with_dbh >>> fun dbh -> catch_db_error @@
+      fun () -> 
+        get_opam_by_name dbh name >|= src_from_opam_row
+end

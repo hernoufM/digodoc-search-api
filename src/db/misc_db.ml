@@ -38,6 +38,11 @@ let path_of_src opam_name opam_version =
         opam_name opam_version
 (** Computes path to source explorer for a package *)
 
+let path_of_src_dir opam_name opam_version = 
+    Printf.sprintf "sources/%s.%s"
+        opam_name opam_version
+(** Computes path to source directory for a package *)
+
 let packages_of_rows rows = 
     List.map (function row ->
         let path = path_of_opam row#opam_name row#opam_version in
@@ -222,3 +227,9 @@ let count_elements_in_rows (in_packs, in_mdls) opam_row mdl_row _row cpt =
 (** [count_elements_in_rows (in_packs, in_mdls) opam_row mdl_row row cpt] increments counter [cpt] if value and 
     its package and module DB rows respects one of condition in [in_packs] and [in_mdls] lists. 
     Otherwise returns [cpt] *)
+
+let src_from_opam_row row =
+    let row = List.hd row in
+    let opam = name_of_opam row#opam_name row#opam_version
+    and path = path_of_src_dir row#opam_name row#opam_version in
+    (opam,path)

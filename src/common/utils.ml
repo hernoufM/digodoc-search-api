@@ -147,6 +147,26 @@ let pattern_from_info info =
     | Element element_info -> element_info.pattern 
 (** Get pattern from [info]. *)
 
+let sources_search_info_of_string str =
+    match String.split_on_char '+' str with
+    | patt :: regex :: case :: last_match_id :: [] ->
+        let pattern = pattern_of_string patt
+        and is_regex = bool_of_string regex
+        and is_case_sensitive = bool_of_string case 
+        and last_match_id = int_of_string last_match_id in
+        {is_regex; is_case_sensitive; pattern; last_match_id}
+    | _ -> failwith ("Not valid sources_search_info info : " ^ str)
+(** Conversion from [string] to [sources_search_info]. *)
+
+let sources_search_info_to_string 
+    { is_regex; is_case_sensitive; pattern; last_match_id } =
+    Printf.sprintf "%s+%b+%b+%d"
+        (pattern_to_string pattern)
+        is_regex
+        is_case_sensitive
+        last_match_id
+(** Conversion from [sources_search_info] to [string] *)
+
 let to_result : type conv. 
     string ->
     convf:(string -> conv) -> 

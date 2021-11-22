@@ -18,6 +18,8 @@
  (synopsis "Search API server for digodoc DB")
  (depends
   ez_api
+  ez_file
+  ez_search
   odoc
   merlin
   dune 

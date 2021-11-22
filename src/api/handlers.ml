@@ -1,6 +1,8 @@
 open Lwt.Infix
 open Data_types
 open Db
+open EzFile.OP
+
 
 (** Module that defines behaviour for every service from [Services] module. *)
 
@@ -15,6 +17,12 @@ let to_api p =
     Catches and encapsulates server errors raised by [p] in order to get error's constructors 
     [Data_types.server_error_type] from client-side. If [p] raises another type of error, than it is 
     converted to [Unknown].*)
+
+let rec take n l = 
+    match n,l with
+    | 0, _ | _, [] -> [] 
+    | n, x::ll -> x::take (n-1) ll
+(* take [n] first elements from list *)
 
 let entries (_params, (entry_info)) () = to_api (
     match entry_info.entry with
@@ -84,32 +92,96 @@ let search  (_params, (pattern:pattern)) () = to_api (
             if l packages + l libraries + l modules <= 10 
             then Ok {packages; libraries; modules }
             else begin
-                (* take n elements from list *)
-                let rec take n l = 
-                    match n,l with
-                    | 0, _ | _, [] -> [] 
-                    | n, x::ll -> x::take (n-1) ll 
+                let packages = 
+                    (* take at most 3 packages *)
+                    if l packages > 3
+                    then take 3 packages
+                    else packages
+                and libraries = 
+                    (* take at most 3 libraries *)
+                    if l libraries > 3 
+                    then take 3 libraries
+                    else libraries
+                and modules =
+                    (* take the rest for modules *)
+                    let rest_length = 10 - (l libraries + l packages) in
+                    if l modules > rest_length  
+                    then take rest_length modules
+                    else modules
                 in
-                    let packages = 
-                        (* take at most 3 packages *)
-                        if l packages > 3
-                        then take 3 packages
-                        else packages
-                    and libraries = 
-                        (* take at most 3 libraries *)
-                        if l libraries > 3 
-                        then take 3 libraries
-                        else libraries
-                    and modules =
-                        (* take the rest for modules *)
-                        let rest_length = 10 - (l libraries + l packages) in
-                        if l modules > rest_length  
-                        then take rest_length modules
-                        else modules
-                    in
-                        Ok {packages;libraries; modules}
+                    Ok {packages;libraries; modules}
             end
         )
 )
 (** Handler for [Services.commands] service. Looks for specifies pattern and returns at most 10 entries 
     (packages, libraries and modules). *)
+
+(* let last_sources_search = ref None *)
+
+open Ez_search.V1.EzSearch
+
+let sources_db = ref None
+(** Sources DB *)
+
+let sources_db_path = PConfig.digodoc_dir // "sources_db"
+(** Sources DB path *)
+
+let sources_db_name = "db"
+(** Sources DB name *)
+
+let get_sources_db () : TYPES.db =
+  match !sources_db with
+  | None -> raise @@ Data_types.search_api_error No_sources_config 
+  | Some db -> db
+(** Returns sources DB. Raises [Search_api_error] if db isn't initialised. *)
+
+let search_sources (_params, (sources_search_info)) () = to_api (
+    let open Ez_search.V1 in
+    let rec get_sublist l start n =
+        match l,start with
+        | [],_ -> []
+        | _, 0 -> take n l
+        | _::ll, i -> get_sublist ll (i-1) n
+    in
+    let src_db = get_sources_db () in 
+    let totaloccs, occurences = 
+        EzSearch.search_and_count
+            ~db:src_db
+            ~is_regexp:sources_search_info.is_regex
+            ~is_case_sensitive:sources_search_info.is_case_sensitive
+            ~ncores:8 (* number of cores of server under domain docs-api.ocaml.pro *)
+            sources_search_info.pattern
+    in
+        (*Printf.eprintf "LINES=%d/%d\n" (List.length occurences) totaloccs; flush stderr;
+        let occurences = get_sublist occurences sources_search_info.last_match_id 20 in
+        List.iter (fun occ -> 
+            let occ_file = EzSearch.occurrence_file ~db:src_db occ in
+            let occ_line_num = EzSearch.occurrence_line ~db:src_db occ_file in
+            let occ_context = EzSearch.occurrence_context ~db:src_db ~line:occ_line_num ~max:0 occ_file in
+
+            Printf.eprintf "pos=%d line=%s\n" occ_line_num occ_context.curr_line; flush stderr)
+            occurences; 
+        Lwt.return (Ok {totaloccs=0; occs=[{opamname=""; srcpath=""; filename=""; occpos=0; occline=""; occpath=""}]})*)
+        let occurences = get_sublist occurences sources_search_info.last_match_id 20 in
+        let%lwt occurences_info = 
+            Lwt_list.map_s (fun occ ->
+                    let occ_file = EzSearch.occurrence_file ~db:src_db occ in
+                    let occ_line_num = EzSearch.occurrence_line ~db:src_db occ_file in
+                    let occ_context = EzSearch.occurrence_context ~db:src_db ~line:occ_line_num ~max:0 occ_file in
+                    let opam_name,_ = EzString.cut_at occ_file.TYPES.occ_file.file_entry '.' in
+                    let%lwt src_info = Db.Sources_search.get_src_info opam_name in
+                    Lwt.return (occ_file,occ_line_num,occ_context,src_info)
+                ) 
+                occurences in
+        let occs =
+            List.map (fun (occ_file, occ_line_num, occ_context,(opamname,srcpath)) -> 
+                    let open TYPES in 
+                    let filename = occ_file.occ_file.file_name 
+                    and occpos = occ_line_num
+                    and occline = occ_context.curr_line in
+                    let occpath = srcpath // filename // "index.html#L" ^ string_of_int occpos in
+                    {opamname; srcpath; filename; occpos; occline; occpath}
+                )
+                occurences_info in
+        Lwt.return (Ok {totaloccs; occs})
+)         

@@ -15,3 +15,6 @@ val command_result_enc : Data_types.command_result Json_encoding.encoding
 
 val search_result_enc : Data_types.search_result Json_encoding.encoding
 (** Encoding for [Data_types.search_result]. *)
+
+val sources_search_result_enc : Data_types.sources_search_result Json_encoding.encoding
+(** Encoding for [Data_types.sources_search_result]. *)

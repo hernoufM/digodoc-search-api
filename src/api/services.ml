@@ -40,6 +40,13 @@ module Args = struct
   }
   (** Example of [Data_types.element] *)
 
+  let sources_search_info_ex = {
+    is_regex=true;
+    is_case_sensitive=true;
+    pattern="it.r";
+    last_match_id=10
+  }
+
   let pattern = Arg.string ~descr:"Pattern of entry" ~example:"zarith" "pattern"   
   (** [Data_types.pattern] argument *)
 
@@ -82,6 +89,16 @@ module Args = struct
       ~construct:info_to_string
       ()
   (** [Data_types.info] argument *)
+
+  let sources_search_info =
+    Arg.make
+      ~example:sources_search_info_ex
+      ~descr:"Information about fulltext search"
+      ~name:"sources_search_info"
+      ~destruct:(to_result ~convf:sources_search_info_of_string)
+      ~construct:sources_search_info_to_string
+      ()      
+  (** [Data_types.sources_search_info] argument *)
 end
 (** Module that unions all service arguments. Argument is created
     with [EzAPI.Arg] module*)
@@ -98,6 +115,13 @@ module Errors = struct
       ~encoding:Json_encoding.unit
       ~select:(function Invalid_regex -> Some () | _ -> None)
       ~deselect:(fun () -> Invalid_regex);
+    (* Load config for sources DB error *)
+    Err.make
+      ~code:500
+      ~name:"No_sources_config"
+      ~encoding:Json_encoding.unit
+      ~select:(function No_sources_config -> Some () | _ -> None)
+      ~deselect:(fun () -> No_sources_config);
     (* Unknown error *)
     Err.make
       ~code:500
@@ -164,3 +188,17 @@ let search : (pattern, search_result, server_error_type, no_security) service1 =
 (** Service that takes a regex pattern in argument and returns [Data_types.search_result] that constains at most 10 entries.
     At contains at most 3 packages, at most 3 libraries and the rest of modules. Could raise [Search_api_error Invalid_index] if 
     [pattern] isn't a correct regex *)
+  
+let search_sources : (sources_search_info, sources_search_result, server_error_type, no_security) service1 =
+  service
+    ~section:section_search
+    ~name:"search_sources"
+    ~descr:"Fulltext search within package sources files"
+    ~output:sources_search_result_enc
+    ~errors:Errors.server_errors
+    Path.(root // "sources_search" /: Args.sources_search_info)
+(** Service that takes an information about fulltext search [Data_types.sources_search_info]. 
+    Field [pattern] describes a substring/regex. Fields [is_regex] and [is_case_sensitive] 
+    customise the search. Field [last_match_id] allows to know from which match occurence it should
+    server should start to return the results. Service looks up inside [Api.sourcs_db] in order to 
+    find a part (limited to 20) of matches inside the lines of sources files for all the packages.*)
