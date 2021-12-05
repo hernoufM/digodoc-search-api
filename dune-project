@@ -22,9 +22,8 @@
   ez_search
   odoc
   merlin
-  dune 
+  dune
   calendar
-  geoip
   lwt_ppx
   cohttp-lwt-unix
   websocket-lwt-unix
