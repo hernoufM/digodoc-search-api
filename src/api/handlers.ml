@@ -92,19 +92,20 @@ let search  (_params, (pattern:pattern)) () = to_api (
             if l packages + l libraries + l modules <= 10 
             then Ok {packages; libraries; modules }
             else begin
-                let packages = 
+                let np, packages = 
                     (* take at most 3 packages *)
                     if l packages > 3
-                    then take 3 packages
-                    else packages
-                and libraries = 
+                    then 3, take 3 packages
+                    else l packages, packages
+                and nl,libraries = 
                     (* take at most 3 libraries *)
                     if l libraries > 3 
-                    then take 3 libraries
-                    else libraries
-                and modules =
+                    then 3, take 3 libraries
+                    else l libraries, libraries
+                in 
+                let modules =
                     (* take the rest for modules *)
-                    let rest_length = 10 - (l libraries + l packages) in
+                    let rest_length = 10 - (np + nl) in
                     if l modules > rest_length  
                     then take rest_length modules
                     else modules
