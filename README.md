@@ -20,6 +20,19 @@ ALTER ROLE <user> CREATEDB;
 ALTER ROLE <user> SET search_path TO db, public;
 ```
 
+Before indexation you should generate your documentation with digodoc. It should produces directory ```_digodoc``` under its workspace. This directory is required by Search API, so you should remplace variable ```<digodoc_dir>``` by absolute path to this directory in *Makefile*. 
+
+Then you should install and launch [Index API](https://github.com/OCamlPro/digodoc-index-api). After launching
+Index API on the port 49002 run:
+
+```bash
+# fill DB for documentation artefacts
+curl "http://localhost:49002/generate"
+
+# indexate sources files
+curl "http://localhost:49002/sources"
+```
+
 ## Building Dependencies
 
 ```bash
@@ -47,8 +60,6 @@ Starting servers on ports [11001]
 Starting COHTTP server (port: 11001)
 
 ```
-
-If you haven't installed [Digodoc Index API](https://github.com/OCamlPro/digodoc-index-api), then your DB tables are not filled yet. So every API service will return an empty result.
 
 ### Launching on background
 

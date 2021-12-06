@@ -103,11 +103,34 @@ type search_result = {
 }
 (** Result of [search] service *)
 
+type sources_occurence = {
+  (* package info *)
+  opamname : string;
+  srcpath: string;
+  (* path to the file *)
+  filename: string;
+  (* line number of the match *)
+  occpos: int;
+  (* line content *)
+  occline: string;
+  (* path to the line at the site *)
+  occpath: string;
+}
+(** Type that describes one occurence of the match for 
+    the fulltext search within sources *)
+
+type sources_search_result = {
+  totaloccs : int;
+  occs : sources_occurence list
+}
+(** Result of [search_sources] service *)
+
 (** {1 Exceptions} *)
 
 (** Possible error types that search-api can raise *)
 type server_error_type =
-  | Invalid_regex 
+  | Invalid_regex
+  | No_sources_config 
   | Unknown
 
 (** Search api exception. When raised by server code
@@ -145,7 +168,7 @@ type entry_info = {
 (** Condition attached to an OCaml element *)
 type condition =
   | In_opam of pattern
-  | In_mdl of pattern
+  | In_mdl of pattern * pattern (* mdl name, opam_name *)
 
 (** Search mode that determines how to handle correctly an element pattern *)
 type search_mode =
@@ -169,3 +192,14 @@ type info =
 
 (** All commands that could be executed with service [exec_command]. *)
 type command = Count 
+
+type file_type = ML | DUNE | MAKEFILE 
+
+type sources_search_info = {
+  pattern : pattern;
+  files: file_type;
+  is_regex : bool;
+  is_case_sensitive : bool;
+  last_match_id : int;
+}
+(** Sources search info, that is used to customise element search through sources DB. *)

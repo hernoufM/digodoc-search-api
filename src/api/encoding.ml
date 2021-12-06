@@ -80,6 +80,8 @@ let entries =
   in
     union cases 
 
+let modules_name = list @@ tup2 string string
+
 type nonrec val_entry = Data_types.val_element = {
   ident : string;
   value : string;
@@ -110,4 +112,18 @@ type search_result = Data_types.search_result = {
   packages : opam_entry list;
   libraries : lib_entry list;
   modules : module_entry list;
+} [@@deriving json_encoding]
+
+type sources_occurence = Data_types.sources_occurence = {
+  opamname : string;
+  srcpath: string;
+  filename: string;
+  occpos: int;
+  occline: string;
+  occpath: string;
+} [@@deriving json_encoding]
+
+type sources_search_result = Data_types.sources_search_result = {
+  totaloccs : int;
+  occs : sources_occurence list
 } [@@deriving json_encoding]

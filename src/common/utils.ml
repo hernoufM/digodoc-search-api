@@ -11,6 +11,14 @@ let pattern_of_string : string -> pattern = Conv.PathSegment.decode
 let pattern_to_string : pattern -> string = Conv.PathSegment.encode
 (** Pattern encoding *)
 
+let pattern_list_of_string str = 
+    String.split_on_char '+' str |> List.map pattern_of_string 
+(** Pattern list decoding *)
+
+let pattern_list_to_string patterns = 
+    List.map pattern_to_string patterns |> String.concat "+"
+(** Pattern list encoding *)
+
 let entry_type_of_string = function 
     | "packages" -> PACK 
     | "libraries" -> LIB 
@@ -64,7 +72,7 @@ let element_info_of_string str =
         match l with
         | [] -> []
         | "opam"::pattern::ll -> In_opam (pattern_of_string pattern)::conditions_from_list ll
-        | "mdl"::pattern::ll -> In_mdl (pattern_of_string pattern)::conditions_from_list ll
+        | "mdl"::p_mdl::p_opam::ll -> In_mdl (pattern_of_string p_mdl,pattern_of_string p_opam)::conditions_from_list ll
         | _ -> failwith ("Not valid element info : " ^ str)  
     (* search_mode from string *)
     and mode_of_string str =
@@ -91,7 +99,7 @@ let element_info_to_string
         match conds with
         | [] -> ""
         | In_opam pattern::ll -> "+opam+"^ pattern_to_string pattern^ (conditions_to_string ll)
-        | In_mdl pattern::ll -> "+mdl+"^ pattern_to_string pattern^ (conditions_to_string ll)
+        | In_mdl (p_mdl,p_opam)::ll -> "+mdl+"^ pattern_to_string p_mdl^ "+" ^ pattern_to_string p_opam ^ (conditions_to_string ll)
     (* search_mode to string *)
     and mode_to_string m =
         match m with
@@ -146,6 +154,41 @@ let pattern_from_info info =
     | Entry entry_info -> entry_info.pattern
     | Element element_info -> element_info.pattern 
 (** Get pattern from [info]. *)
+
+let file_type_of_string = function
+    | "ml" -> ML
+    | "dune" -> DUNE
+    | "makefile" -> MAKEFILE
+    | str -> failwith ("Not valid file type : " ^ str)  
+(** Conversion from [string] to [file_type]. *)
+
+let file_type_to_string = function
+    | ML -> "ml"
+    | DUNE -> "dune"
+    | MAKEFILE -> "makefile"
+(** Conversion from [file_type] to [string]. *)
+
+let sources_search_info_of_string str =
+    match String.split_on_char '+' str with
+    | patt :: file_type :: regex :: case :: last_match_id :: [] ->
+        let pattern = pattern_of_string patt
+        and files = file_type_of_string file_type
+        and is_regex = bool_of_string regex
+        and is_case_sensitive = bool_of_string case 
+        and last_match_id = int_of_string last_match_id in
+        {is_regex; files; is_case_sensitive; pattern; last_match_id}
+    | _ -> failwith ("Not valid sources_search_info info : " ^ str)
+(** Conversion from [string] to [sources_search_info]. *)
+
+let sources_search_info_to_string 
+    { is_regex; files; is_case_sensitive; pattern; last_match_id } =
+    Printf.sprintf "%s+%s+%b+%b+%d"
+        (pattern_to_string pattern)
+        (file_type_to_string files)
+        is_regex
+        is_case_sensitive
+        last_match_id
+(** Conversion from [sources_search_info] to [string] *)
 
 let to_result : type conv. 
     string ->
