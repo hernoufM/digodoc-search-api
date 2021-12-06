@@ -24,7 +24,7 @@ let rec take n l =
     | n, x::ll -> x::take (n-1) ll
 (* take [n] first elements from list *)
 
-let entries (_params, (entry_info)) () = to_api (
+let entries (_params, entry_info) () = to_api (
     match entry_info.entry with
     | PACK ->
         (* get packages from DB *)
@@ -49,6 +49,13 @@ let entries (_params, (entry_info)) () = to_api (
 )
 (** Handler for [Services.entries] service. Looks up entry type from [entry_info] and returns list of corresponding 
     entries respecting [entry_info] constraints. *)
+
+let opam_modules ((_params, pattern), pattern_list) () = to_api (
+    Entries.get_modules_from_packages pattern pattern_list >|= fun modules ->
+        Ok modules
+)
+(** Handler for [Services.opam_modules] service. Looks for specified pattern and returns list of modules that are atteched
+    to one of the opam package defiend in [pattern_list]. *)
 
 let elements (_params, element_info) () = to_api (
     (* Handling and converting list of condidtions *)
@@ -114,29 +121,41 @@ let search  (_params, (pattern:pattern)) () = to_api (
             end
         )
 )
-(** Handler for [Services.commands] service. Looks for specifies pattern and returns at most 10 entries 
+(** Handler for [Services.commands] service. Looks for specified pattern and returns at most 10 entries 
     (packages, libraries and modules). *)
 
 (* let last_sources_search = ref None *)
 
 open Ez_search.V1.EzSearch
 
-let sources_db = ref None
-(** Sources DB *)
+let sources_ocaml_db = ref None
+(** Sources DB for ocaml files *)
+
+let sources_dune_db = ref None
+(** Sources DB for ocaml files *)
+
+let sources_makefile_db = ref None
+(** Sources DB for ocaml files *)
 
 let sources_db_path = PConfig.digodoc_dir // "sources_db"
 (** Sources DB path *)
 
-let sources_db_name = "db"
-(** Sources DB name *)
+let ocaml_db_name = "ocaml_db" 
+(** Ocaml files DB name *)
 
-let get_sources_db () : TYPES.db =
-  match !sources_db with
+let dune_db_name = "dune_db"
+(** Dune files DB name *)
+
+let makefile_db_name = "makefile_db"
+(** Makefiles DB name *)
+
+let get_sources_db db : TYPES.db =
+  match !db with
   | None -> raise @@ Data_types.search_api_error No_sources_config 
   | Some db -> db
 (** Returns sources DB. Raises [Search_api_error] if db isn't initialised. *)
 
-let search_sources (_params, (sources_search_info)) () = to_api (
+let search_sources (_params, sources_search_info) () = to_api (
     let open Ez_search.V1 in
     let rec get_sublist l start n =
         match l,start with
@@ -144,7 +163,13 @@ let search_sources (_params, (sources_search_info)) () = to_api (
         | _, 0 -> take n l
         | _::ll, i -> get_sublist ll (i-1) n
     in
-    let src_db = get_sources_db () in 
+    let db = 
+        match sources_search_info.files with
+        | ML -> sources_ocaml_db
+        | DUNE -> sources_dune_db
+        | MAKEFILE -> sources_makefile_db
+    in
+    let src_db = get_sources_db db in 
     let totaloccs, occurences = 
         EzSearch.search_and_count
             ~db:src_db

@@ -80,6 +80,8 @@ let entries =
   in
     union cases 
 
+let modules_name = list @@ tup2 string string
+
 type nonrec val_entry = Data_types.val_element = {
   ident : string;
   value : string;

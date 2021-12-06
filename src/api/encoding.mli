@@ -7,6 +7,9 @@ val api_config : int option Json_encoding.encoding
 val entries : Data_types.entries Json_encoding.encoding
 (** Encoding for [Data_types.entries]. *)
 
+val modules_name : (string * string) list Json_encoding.encoding
+(** Encoding for [Data_types.modules]. *)
+
 val ocaml_elements : Data_types.ocaml_elements Json_encoding.encoding
 (** Encoding for [Data_types.elements]. *)
 

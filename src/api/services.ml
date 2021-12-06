@@ -41,6 +41,7 @@ module Args = struct
   (** Example of [Data_types.element] *)
 
   let sources_search_info_ex = {
+    files=ML;
     is_regex=true;
     is_case_sensitive=true;
     pattern="it.r";
@@ -49,6 +50,13 @@ module Args = struct
 
   let pattern = Arg.string ~descr:"Pattern of entry" ~example:"zarith" "pattern"   
   (** [Data_types.pattern] argument *)
+
+  let pattern_list =
+    Arg.make
+      ~name:"pattern_list" 
+      ~destruct:(to_result ~convf:pattern_list_of_string)
+      ~construct:pattern_list_to_string
+      ()
 
   let entry_info = 
     Arg.make
@@ -149,6 +157,17 @@ let entries : (entry_info, entries, server_error_type, no_security) service1 =
     regex expression. Field [starts_with] contains another regex pattern that starts with "^" and precises the first letter of an entry. Field
     [last_id] precise previus index of the first entry from which it takes results. Could raise [Search_api_error Invalid_index] if [pattern] 
     isn't a correct regex *)
+
+let opam_modules : (pattern, pattern list, (string * string) list, server_error_type, no_security) service2 =
+  service
+    ~section:section_entries
+    ~name:"opam_modules"
+    ~descr:"Modules for given opam packages"
+    ~output:modules_name
+    ~errors:Errors.server_errors
+    Path.(root // "opam_modules" /: Args.pattern /: Args.pattern_list)
+(** Service that takes as argument name of module and [pattern list] and returns all modules that have corresponding name and are attached 
+    to one of opam package specified in argument. Every pattern should correspond to full opam name. *)
 
 let elements : (element_info,ocaml_elements,server_error_type,no_security) service1 = 
   service

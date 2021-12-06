@@ -29,7 +29,7 @@ let get_libs_by_mdl_id dbh mdl_id =
 let get_mdls_by_name dbh mdl =
   [%pgsql.object dbh "select mdl_name,mdl_opam
                       from module_index 
-                      where mdl_name=$mdl"]
+                      where mdl_name ~* $mdl"]
 (** Get module rows by module name *)
 
 module Entries = struct
@@ -128,6 +128,15 @@ module Entries = struct
   (** Get 50 first sources starting with index [last_id + 1] in DB rows that are obtained by following conditions :
       - Source should match [starts_with] regex expression, that indicates the first letter of the name.
       - Source should match [pattern] regex expression, that describes case insensetive substring of the name. *)
+
+  let get_modules_from_packages mdl_name opam_list : (string * string) list Lwt.t =
+     with_dbh >>> fun dbh -> catch_db_error @@
+      fun () ->
+        let%lwt rows = get_mdls_by_name dbh mdl_name in
+          Lwt_list.filter_map_s
+          (fun mdl -> Lwt.return @@ mdl_in_opams mdl opam_list)
+          rows 
+  (** Get all modules that has attached package inside [opam_list] with its package name. *)
 end
 (** Module that regroups all DB requests for [Handlers.entries] handler. *)
 

@@ -233,3 +233,9 @@ let src_from_opam_row row =
     let opam = name_of_opam row#opam_name row#opam_version
     and path = path_of_src_dir row#opam_name row#opam_version in
     (opam,path)
+(** Returns opam name and path to the directory for sources from opam row. *)
+
+let mdl_in_opams row opams =
+    List.find_opt (String.equal row#mdl_opam) opams 
+    |> Option.map (fun opam -> row#mdl_name, opam) 
+(** Returns module with its package name if it is attached to existing one from [packs]. Otherwise returns None. *)

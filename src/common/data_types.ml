@@ -193,8 +193,11 @@ type info =
 (** All commands that could be executed with service [exec_command]. *)
 type command = Count 
 
+type file_type = ML | DUNE | MAKEFILE 
+
 type sources_search_info = {
   pattern : pattern;
+  files: file_type;
   is_regex : bool;
   is_case_sensitive : bool;
   last_match_id : int;
