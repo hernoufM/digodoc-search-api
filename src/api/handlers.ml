@@ -59,11 +59,11 @@ let opam_modules ((_params, pattern), pattern_list) () = to_api (
 
 let elements (_params, element_info) () = to_api (
     (* Handling and converting list of condidtions *)
-    Elements.get_conditions_from_rows element_info >>= fun conditions ->
+    Elements.get_modules_from_conditions element_info >>= fun modules ->
     match element_info.element with
     | VAL -> 
         (* get vals from DB *)
-        Elements.get_vals conditions element_info >|= fun vals ->
+        Elements.get_vals modules element_info >|= fun vals ->
         Ok (Val vals)
 )
 (** Handler for [Services.elements] service. Looks up element type from [element_info] and returns list of corresponding 
@@ -79,7 +79,7 @@ let exec_command ((_params, command), info) () = to_api (
     (* count elements *)
     | Count,Element element_info ->
         (* Handling and converting list of condidtions *)
-        Elements.get_conditions_from_rows element_info >>= fun conditions ->
+        Elements.get_modules_from_conditions element_info >>= fun conditions ->
         (* executes command *)
         Commands.count_elements conditions element_info  >|= fun result ->
             Ok {result=string_of_int result}
@@ -123,8 +123,6 @@ let search  (_params, (pattern:pattern)) () = to_api (
 )
 (** Handler for [Services.commands] service. Looks for specified pattern and returns at most 10 entries 
     (packages, libraries and modules). *)
-
-(* let last_sources_search = ref None *)
 
 open Ez_search.V1.EzSearch
 
@@ -210,4 +208,5 @@ let search_sources (_params, sources_search_info) () = to_api (
                 )
                 occurences_info in
         Lwt.return (Ok {totaloccs; occs})
-)         
+)
+(** Handler for [Services.search_sources] service. Makes a search with [ez_search] in specific DB by applying filters from [sources_search_info]. *)

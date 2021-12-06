@@ -110,85 +110,7 @@ let sources_of_rows rows : sources =
     ) rows
 (** Creates [Data_types.sources] from DB rows *)
 
-(* TODO: to rewrite/delete conditions:  *)
-module Cond = struct 
-
-    type opam_cond = string
-    (** Condition that describes 'in package' property *)
-
-    type mdl_cond = string * string
-    (** Condition that describes 'in module' property *)
-
-    let make_opam_cond opam = opam
-    (** Creates condition from package name (with version) *)
-
-    let make_mdl_cond mdl opam = (mdl,opam)
-    (** Creates condition from module name and its package name (with version) *)  
-
-    let eq_pack p1 p2 = String.equal p1 p2
-    (** Says if two opam conditions are equal *)
-
-    let eq_mdl (mdl1,opam1) (mdl2,opam2) =
-        String.equal mdl1 mdl2
-        && String.equal opam1 opam2
-    (** Says if two module conditions are equal *)
-
-    let mem_pack p = List.exists (eq_pack p)
-    (** Says if opam condition appears in the list *)
-
-    let mem_mdl m = List.exists (eq_mdl m)
-    (** Says if module condition appears in the list *)
-
-    let opam_union packs1 packs2 =
-        let union = ref packs1 in 
-        List.iter (fun pack2 ->
-            if not @@ mem_pack pack2 packs1
-            then union := pack2::!union
-            )
-            packs2;
-        !union
-    (** Makes union of two opam condition lists *)
-
-    let mdl_union mdls1 mdls2 =
-        let union = ref mdls1 in 
-        List.iter (fun mdl2 ->
-            if not @@ mem_mdl mdl2 mdls1
-            then union := mdl2::!union
-            )
-            mdls2;
-        !union
-    (** Makes union of two module condition lists *)
-
-    let check_validity opam_conds mdl_conds =
-        List.for_all (fun (_,opam) ->
-                if opam_conds <> []
-                then mem_pack (make_opam_cond opam) opam_conds
-                else true
-            )
-            mdl_conds
-    (** Says if module condition list is valid versus opam condition list.  
-        It's means that every module's package appears in the opam condition list *)
-
-    let respect_opam_conditions opam opam_conds =
-        match opam_conds with
-        | [] -> true
-        | _ -> mem_pack opam opam_conds
-    (** Says if package respects opam conditions *)
-
-    let respect_mdl_conditions mdl mdl_conds =
-        match mdl_conds with
-        | [] -> true
-        | _ -> mem_mdl mdl mdl_conds
-    (** Says if module respects module conditions *)
-end
-(** Module [Cond] that regroups functions dealing with conditions send with [getElements] request.
-    Actially there are only two conditions : one that describes either an element belongs to module 
-    with specified name, another that describes either an element belongs to specific package. *)
-
-let val_of_row_opt 
-    ((in_packs : Cond.opam_cond list), (in_mdls : Cond.mdl_cond list)) 
-    row opam_row mdl_row = 
-    let open Cond in
+let val_of_row_opt modules row opam_row mdl_row = 
     let opam_row = List.hd opam_row 
     and mdl_row = List.hd mdl_row in 
     let opampath = path_of_opam opam_row#opam_name opam_row#opam_version
@@ -196,8 +118,10 @@ let val_of_row_opt
     and mdlpath = mdl_row#mdl_path
     and mdl = mdl_row#mdl_name in
     (* If val resepcts one of opam and mdl condition *)
-    if respect_opam_conditions (make_opam_cond opam) in_packs 
-       && respect_mdl_conditions (make_mdl_cond mdl opam) in_mdls 
+    if List.length modules = 0 
+       || List.exists 
+            (fun (mdl_name,opam_name) -> mdl_name = mdl && opam_name = opam_row#opam_name) 
+            modules
     then Some {
                 ident = row#mdl_ident;
                 value = row#mdl_val;
@@ -207,25 +131,23 @@ let val_of_row_opt
                 opampath
             }
     else None
-(** [val_of_row_opt (in_packs,in_mdls) row opam_row mdl_row] returns Some of [Data_types.val_element] if value and 
-    its package and module DB rows respects one of condition in [in_packs] and [in_mdls] lists.
+(** [val_of_row_opt modules row opam_row mdl_row] returns Some of [Data_types.val_element] if value is defined in one of the module from [modules] list.
     Otherwise returns None. *)
 
 let count_from_row = function [ Some v ] -> Int64.to_int v | _ -> 0
 (** Extracts result of command 'count' from DB row *)
 
-let count_elements_in_rows (in_packs, in_mdls) opam_row mdl_row _row cpt =
-    let open Cond in
+let count_elements_in_rows modules opam_row mdl_row _row cpt =
     let opam_row = List.hd opam_row 
     and mdl_row = List.hd mdl_row in
-    let opam = name_of_opam opam_row#opam_name opam_row#opam_version 
-    and mdl = mdl_row#mdl_name in
-    if respect_opam_conditions (make_opam_cond opam) in_packs 
-       && respect_mdl_conditions (make_mdl_cond mdl opam) in_mdls 
+    let mdl = mdl_row#mdl_name in
+    if List.length modules = 0 
+       || List.exists 
+            (fun (mdl_name,opam_name) -> mdl_name = mdl && opam_name = opam_row#opam_name) 
+            modules
     then cpt + 1
     else cpt
-(** [count_elements_in_rows (in_packs, in_mdls) opam_row mdl_row row cpt] increments counter [cpt] if value and 
-    its package and module DB rows respects one of condition in [in_packs] and [in_mdls] lists. 
+(** [count_elements_in_rows modules opam_row mdl_row row cpt] increments counter [cpt] if value is defined in one of the module from [modules] list.
     Otherwise returns [cpt] *)
 
 let src_from_opam_row row =

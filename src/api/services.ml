@@ -36,7 +36,7 @@ module Args = struct
     last_id=0;
     pattern="to_str.ng"; 
     mode=Regex; 
-    conditions=[In_opam "zarith"; In_mdl "Z"]
+    conditions=[In_opam "zarith"; In_mdl ("Z","zarith")]
   }
   (** Example of [Data_types.element] *)
 

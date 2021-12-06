@@ -168,7 +168,7 @@ type entry_info = {
 (** Condition attached to an OCaml element *)
 type condition =
   | In_opam of pattern
-  | In_mdl of pattern
+  | In_mdl of pattern * pattern (* mdl name, opam_name *)
 
 (** Search mode that determines how to handle correctly an element pattern *)
 type search_mode =

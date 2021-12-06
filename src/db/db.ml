@@ -141,50 +141,21 @@ end
 (** Module that regroups all DB requests for [Handlers.entries] handler. *)
 
 module Elements = struct 
-  (* TODO: rewrite and test *)
-  let get_conditions_from_rows {conditions; _ } =
+
+  let get_modules_from_conditions {conditions; _ } =
     with_dbh >>> fun dbh -> catch_db_error @@
       fun () -> 
-        let mdls = ref []
-        and packs = ref [] in
-        let%lwt () = 
-          Lwt_list.iter_s 
-            (fun cond ->
-              match cond with 
-              | In_opam opam -> 
-                let%lwt pkgs = get_opam_by_name dbh opam in 
-                let pkgs = 
-                  List.map 
-                    (fun opam-> 
-                        Cond.make_opam_cond 
-                        (name_of_opam opam#opam_name opam#opam_version)
-                    ) 
-                    pkgs 
-                in
-                  packs:= Cond.opam_union !packs pkgs ;
-                  Lwt.return_unit
-              | In_mdl mdl -> 
-                let%lwt mods = get_mdls_by_name dbh mdl in 
-                let%lwt mods = 
-                  Lwt_list.map_s 
-                    (fun mdl-> 
-                      let%lwt opam = get_opam_by_name dbh mdl#mdl_opam in
-                      let opam = List.hd opam in
-                      Cond.make_mdl_cond 
-                        mdl#mdl_name
-                        (name_of_opam opam#opam_name opam#opam_version)
-                      |> Lwt.return
-                    ) 
-                    mods 
-                in
-                  mdls:= Cond.mdl_union !mdls mods;
-                  Lwt.return_unit
-            )
-            conditions
-        in Lwt.return (!packs, !mdls)
-    
+        let packs = List.filter_map (function In_opam opam -> Some opam | _ -> None) conditions
+        and mdls = List.filter_map (function In_mdl (mdl,opam) -> Some (mdl,opam) | _ -> None) conditions in
+        if List.length mdls = 0 then
+          let%lwt mdls = Entries.get_modules_from_packages "" packs in
+          Lwt.return mdls
+        else 
+          Lwt.return mdls
+  (** Returns list of modules with their opam names from list of conditions. If module condition is empty, 
+      then returns all the modules inside packages specified in condition. *)
 
-  let get_vals conditions {last_id; pattern; _} =
+  let get_vals modules {last_id; pattern; _} =
     with_dbh >>> fun dbh -> catch_db_error @@
     fun () -> 
       let%lwt rows = [%pgsql.object dbh "select * 
@@ -200,12 +171,11 @@ module Elements = struct
             let opam_name = row#mdl_opam_name in 
             let%lwt opam_row = get_opam_by_name dbh opam_name in
             let%lwt mdl_row = get_mdl_by_id dbh row#mdl_id in
-            Lwt.return (val_of_row_opt conditions row opam_row mdl_row)
+            Lwt.return (val_of_row_opt modules row opam_row mdl_row)
           )
           rows
   (** Get 50 first ocaml values starting with index [last_id + 1] in DB rows that are obtained by following conditions :
-      - Value should respect at least 1 package constraint and at least 1 module constaint if they are presented. Constraint
-      describes to which entry this ocaml value is included.
+      - Value should be defined in one of the module from [modules] list.
       - Value should match [pattern] regex expression, that describes case insensetive substring of the name. *)
 end
 (** Module that regroups all DB requests for [Handlers.elements] handler. *)

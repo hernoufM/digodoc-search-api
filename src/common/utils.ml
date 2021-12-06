@@ -72,7 +72,7 @@ let element_info_of_string str =
         match l with
         | [] -> []
         | "opam"::pattern::ll -> In_opam (pattern_of_string pattern)::conditions_from_list ll
-        | "mdl"::pattern::ll -> In_mdl (pattern_of_string pattern)::conditions_from_list ll
+        | "mdl"::p_mdl::p_opam::ll -> In_mdl (pattern_of_string p_mdl,pattern_of_string p_opam)::conditions_from_list ll
         | _ -> failwith ("Not valid element info : " ^ str)  
     (* search_mode from string *)
     and mode_of_string str =
@@ -99,7 +99,7 @@ let element_info_to_string
         match conds with
         | [] -> ""
         | In_opam pattern::ll -> "+opam+"^ pattern_to_string pattern^ (conditions_to_string ll)
-        | In_mdl pattern::ll -> "+mdl+"^ pattern_to_string pattern^ (conditions_to_string ll)
+        | In_mdl (p_mdl,p_opam)::ll -> "+mdl+"^ pattern_to_string p_mdl^ "+" ^ pattern_to_string p_opam ^ (conditions_to_string ll)
     (* search_mode to string *)
     and mode_to_string m =
         match m with
