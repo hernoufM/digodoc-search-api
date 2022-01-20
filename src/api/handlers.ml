@@ -79,9 +79,9 @@ let exec_command ((_params, command), info) () = to_api (
     (* count elements *)
     | Count,Element element_info ->
         (* Handling and converting list of condidtions *)
-        Elements.get_modules_from_conditions element_info >>= fun conditions ->
+        Elements.get_modules_from_conditions element_info >>= fun modules ->
         (* executes command *)
-        Commands.count_elements conditions element_info  >|= fun result ->
+        Commands.count_elements modules element_info  >|= fun result ->
             Ok {result=string_of_int result}
 )
 (** Handler for [Services.commands] service. Looks for filters defined in [info] and executes command. *)
