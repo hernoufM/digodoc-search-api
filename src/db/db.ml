@@ -165,10 +165,13 @@ module Elements = struct
       fun () -> 
         let packs = List.filter_map (function In_opam opam -> Some opam | _ -> None) conditions
         and mdls = List.filter_map (function In_mdl (mdl,opam) -> Some (mdl,opam) | _ -> None) conditions in
-        if List.length mdls = 0 then
+        if mdls = [] then
           let%lwt mdls = Entries.get_modules_from_packages "" packs in
           Lwt.return mdls
-        else 
+        else if packs <> [] then
+          let%lwt mdls1 = Entries.get_modules_from_packages "" packs in
+          Lwt.return @@ mdls @ mdls1
+        else
           Lwt.return mdls
   (** Returns list of modules with their opam names from list of conditions. If module condition is empty, 
       then returns all the modules inside packages specified in condition. *)
