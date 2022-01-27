@@ -110,45 +110,25 @@ let sources_of_rows rows : sources =
     ) rows
 (** Creates [Data_types.sources] from DB rows *)
 
-let val_of_row_opt modules row opam_row mdl_row = 
+let val_of_row row opam_row mdl_row = 
     let opam_row = List.hd opam_row 
     and mdl_row = List.hd mdl_row in 
     let opampath = path_of_opam opam_row#opam_name opam_row#opam_version
     and opam = name_of_opam opam_row#opam_name opam_row#opam_version 
     and mdlpath = mdl_row#mdl_path
     and mdl = mdl_row#mdl_name in
-    (* If val resepcts one of opam and mdl condition *)
-    if List.length modules = 0 
-       || List.exists 
-            (fun (mdl_name,opam_name) -> mdl_name = mdl && opam_name = opam_row#opam_name) 
-            modules
-    then Some {
-                ident = row#mdl_ident;
-                value = row#mdl_val;
-                mdl;
-                mdlpath;
-                opam;
-                opampath
-            }
-    else None
-(** [val_of_row_opt modules row opam_row mdl_row] returns Some of [Data_types.val_element] if value is defined in one of the module from [modules] list.
-    Otherwise returns None. *)
+    {
+        ident = row#mdl_ident;
+        value = row#mdl_val;
+        mdl;
+        mdlpath;
+        opam;
+        opampath
+    }
+(** Creates [Data_types.val_element] from DB rows. *)
 
 let count_from_row = function [ Some v ] -> Int64.to_int v | _ -> 0
 (** Extracts result of command 'count' from DB row *)
-
-let count_elements_in_rows modules opam_row mdl_row _row cpt =
-    let opam_row = List.hd opam_row 
-    and mdl_row = List.hd mdl_row in
-    let mdl = mdl_row#mdl_name in
-    if List.length modules = 0 
-       || List.exists 
-            (fun (mdl_name,opam_name) -> mdl_name = mdl && opam_name = opam_row#opam_name) 
-            modules
-    then cpt + 1
-    else cpt
-(** [count_elements_in_rows modules opam_row mdl_row row cpt] increments counter [cpt] if value is defined in one of the module from [modules] list.
-    Otherwise returns [cpt] *)
 
 let src_from_opam_row row =
     let row = List.hd row in

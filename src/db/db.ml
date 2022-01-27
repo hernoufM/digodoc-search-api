@@ -32,6 +32,24 @@ let get_mdls_by_name dbh mdl =
                       where mdl_name ~* $mdl"]
 (** Get module rows by module name *)
 
+let regexs_from_modules modules =
+  let modules_regex = 
+    if modules = [] 
+    then "" 
+    else "^(" ^ 
+         String.concat "|" 
+          (List.map fst modules) 
+         ^ ")$" in 
+  let opam_regex = 
+    if modules = [] 
+    then "" 
+    else "^(" ^ 
+         String.concat "|" 
+          (List.map snd modules) 
+         ^ ")$" in
+  (modules_regex,opam_regex)
+(** Returns module's and opam's regex expression for specified conditions *)
+
 module Entries = struct
 
   let get_packages {last_id; starts_with; pattern; _ } =
@@ -147,31 +165,35 @@ module Elements = struct
       fun () -> 
         let packs = List.filter_map (function In_opam opam -> Some opam | _ -> None) conditions
         and mdls = List.filter_map (function In_mdl (mdl,opam) -> Some (mdl,opam) | _ -> None) conditions in
-        if List.length mdls = 0 then
+        if mdls = [] then
           let%lwt mdls = Entries.get_modules_from_packages "" packs in
           Lwt.return mdls
-        else 
+        else if packs <> [] then
+          let%lwt mdls1 = Entries.get_modules_from_packages "" packs in
+          Lwt.return @@ mdls @ mdls1
+        else
           Lwt.return mdls
   (** Returns list of modules with their opam names from list of conditions. If module condition is empty, 
       then returns all the modules inside packages specified in condition. *)
 
   let get_vals modules {last_id; pattern; _} =
     with_dbh >>> fun dbh -> catch_db_error @@
-    fun () -> 
+    fun () ->
+      let modules_regex,opam_regex = regexs_from_modules modules in
       let%lwt rows = [%pgsql.object dbh "select * 
                         from 
                           (select *, ROW_NUMBER () OVER (ORDER BY UPPER(mdl_ident)) as row_id 
                           from module_vals 
-                          where mdl_ident ~* $pattern) result 
+                          where mdl_ident ~* $pattern and mdl_name ~* $modules_regex and mdl_opam_name ~* $opam_regex) result 
                         where result.row_id>${Int64.of_int last_id} 
                         and result.row_id < ${Int64.add (Int64.of_int last_id) (Int64.of_int 50)}"]
       in
-        Lwt_list.filter_map_s 
+        Lwt_list.map_s
           (fun row ->
             let opam_name = row#mdl_opam_name in 
             let%lwt opam_row = get_opam_by_name dbh opam_name in
             let%lwt mdl_row = get_mdl_by_id dbh row#mdl_id in
-            Lwt.return (val_of_row_opt modules row opam_row mdl_row)
+            Lwt.return (val_of_row row opam_row mdl_row)
           )
           rows
   (** Get 50 first ocaml values starting with index [last_id + 1] in DB rows that are obtained by following conditions :
@@ -213,24 +235,19 @@ module Commands = struct
       - Entry name should match [starts_with] regex expression, that indicates the first letter of the name.
       - Entry name should match [pattern] regex expression, that describes case insensetive substring of the name. *)
 
-  let count_elements conditions {element; pattern; _ } =
+  let count_elements modules {element; pattern; _ } =
     with_dbh >>> fun dbh -> catch_db_error @@
     fun () ->
-      let%lwt elements = 
+      let modules_regex,opam_regex = regexs_from_modules modules in
+      begin
         match element with
-        | VAL -> [%pgsql.object dbh "select * 
-                            from module_vals 
-                            where mdl_ident ~* $pattern "]
-      in 
-        Lwt_list.fold_right_s 
-          (fun element cpt ->
-            let opam_name = element#mdl_opam_name in 
-            let%lwt opam_row = get_opam_by_name dbh opam_name in
-            let%lwt mdl_row = get_mdl_by_id dbh element#mdl_id in
-            Lwt.return (count_elements_in_rows conditions opam_row mdl_row element cpt)
-          )
-          elements
-          0
+        | VAL -> [%pgsql dbh "select count(*) as n
+                              from module_vals 
+                              where mdl_ident ~* $pattern 
+                                    and mdl_name ~* $modules_regex 
+                                    and mdl_opam_name ~* $opam_regex"]
+      end
+      >|= count_from_row
   (** Count number of elements in DB for specific element type mentionned in [element] field. It should follow those conditions :
       - Element name should respect at least 1 package constraint and at least 1 module constaint if they are presented. Constraint
       describes to which entry this element is included.
