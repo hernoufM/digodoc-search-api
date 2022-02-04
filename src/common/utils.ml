@@ -1,39 +1,39 @@
-open Data_types 
+open Data_types
 
 (** Module [Utils] defines some usefull functions to manipulate data types defined in [Data_types] module. *)
 
 (** Conversion usefull functions *)
-module Conv = UtilsEncoding 
+module Conv = UtilsEncoding
 
-let pattern_of_string : string -> pattern = Conv.PathSegment.decode 
+let pattern_of_string : string -> pattern = Conv.PathSegment.decode
 (** Pattern decoding *)
-    
+
 let pattern_to_string : pattern -> string = Conv.PathSegment.encode
 (** Pattern encoding *)
 
-let pattern_list_of_string str = 
-    String.split_on_char '+' str |> List.map pattern_of_string 
+let pattern_list_of_string str =
+    String.split_on_char '+' str |> List.map pattern_of_string
 (** Pattern list decoding *)
 
-let pattern_list_to_string patterns = 
+let pattern_list_to_string patterns =
     List.map pattern_to_string patterns |> String.concat "+"
 (** Pattern list encoding *)
 
-let entry_type_of_string = function 
-    | "packages" -> PACK 
-    | "libraries" -> LIB 
-    | "metas" -> META 
-    | "modules" -> MOD 
-    | "sources" -> SRC 
-    | s -> failwith ("Not valid entry type : " ^ s)  
+let entry_type_of_string = function
+    | "packages" -> PACK
+    | "libraries" -> LIB
+    | "metas" -> META
+    | "modules" -> MOD
+    | "sources" -> SRC
+    | s -> failwith ("Not valid entry type : " ^ s)
 (** Conversion from [string] to [entry_type]. Raises [Failure] if can't convert to [entry_type]. *)
 
-let entry_type_to_string = function 
-    | PACK -> "packages" 
+let entry_type_to_string = function
+    | PACK -> "packages"
     | LIB -> "libraries"
     | META -> "metas"
-    | MOD -> "modules" 
-    | SRC -> "sources" 
+    | MOD -> "modules"
+    | SRC -> "sources"
 (** Conversion from [entry_type] to [string] *)
 
 let entry_info_of_string str =
@@ -45,7 +45,7 @@ let entry_info_of_string str =
         and pattern = pattern_of_string patt
         and starts_with = Uri.pct_decode starts_with
         in {entry; last_id; starts_with; pattern}
-    | _ -> failwith ("Not valid entry info : " ^ str)  
+    | _ -> failwith ("Not valid entry info : " ^ str)
 (** Conversion from [string] to [entry_info]. Raises [Failure] if can't convert to [entry_info]. *)
 
 let entry_info_to_string
@@ -54,16 +54,24 @@ let entry_info_to_string
         (entry_type_to_string entry)
         last_id
         starts_with
-        (pattern_to_string pattern) 
+        (pattern_to_string pattern)
 (** Conversion from [entry_info] to [string] *)
 
-let element_type_of_string = function 
-    | "vals" -> VAL 
-    | s -> failwith ("Not valid element type : " ^ s)  
+let element_type_of_string = function
+    | "vals" -> VAL
+    | "types" -> TYPE
+    (*
+    | "classes" -> CLASS
+    *)
+    | s -> failwith ("Not valid element type : " ^ s)
 (** Conversion from [string] to [element_type]. Raises [Failure] if can't convert to [element_type]. *)
 
-let element_type_to_string = function 
-    | VAL -> "vals" 
+let element_type_to_string = function
+    | VAL -> "vals"
+    | TYPE -> "types"
+    (*
+    | CLASS -> "classes"
+    *)
 (** Conversion from [element_type] to [string] *)
 
 let element_info_of_string str =
@@ -73,7 +81,7 @@ let element_info_of_string str =
         | [] -> []
         | "opam"::pattern::ll -> In_opam (pattern_of_string pattern)::conditions_from_list ll
         | "mdl"::p_mdl::p_opam::ll -> In_mdl (pattern_of_string p_mdl,pattern_of_string p_opam)::conditions_from_list ll
-        | _ -> failwith ("Not valid element info : " ^ str)  
+        | _ -> failwith ("Not valid element info : " ^ str)
     (* search_mode from string *)
     and mode_of_string str =
         match str with
@@ -85,11 +93,11 @@ let element_info_of_string str =
         | "element"::element::last_id::pattern::mode::ll ->
             let element = element_type_of_string element
             and last_id = int_of_string last_id
-            and pattern = pattern_of_string pattern 
-            and mode = mode_of_string mode 
+            and pattern = pattern_of_string pattern
+            and mode = mode_of_string mode
             and conditions = conditions_from_list ll in
             {element; last_id; pattern; mode; conditions}
-        | _ -> failwith ("Not valid element info : " ^ str)  
+        | _ -> failwith ("Not valid element info : " ^ str)
 (** Conversion from [string] to [element_info]. Raises [Failure] if can't convert to [element_info]. *)
 
 let element_info_to_string
@@ -105,12 +113,12 @@ let element_info_to_string
         match m with
         | Regex -> "regex"
         | Text -> "text"
-    in 
+    in
         Printf.sprintf "element+%s+%d+%s+%s%s"
             (element_type_to_string element)
             last_id
             (pattern_to_string pattern)
-            (mode_to_string mode)     
+            (mode_to_string mode)
             (conditions_to_string conditions)
 (** Conversion from [element_info] to [string] *)
 
@@ -120,7 +128,7 @@ let info_of_srting str =
     match ind with
     | Some "entry" -> Entry (entry_info_of_string str)
     | Some "element" -> Element (element_info_of_string str)
-    | _ -> failwith ("Not valid info : " ^ str)  
+    | _ -> failwith ("Not valid info : " ^ str)
 (** Conversion from [string] to [info]. Raises [Failure] if can't convert to [info]. *)
 
 let info_to_string = function
@@ -130,36 +138,38 @@ let info_to_string = function
 
 let command_of_string = function
     | "count" -> Count
-    |  str -> failwith ("Not valid command : " ^ str)  
+    |  str -> failwith ("Not valid command : " ^ str)
 (** Conversion from [string] to [command]. Raises [Failure] if can't convert to [command]. *)
 
 let command_to_string = function
     | Count -> "count"
 (** Conversion from [command] to [string]. *)
 
-let empty_entries entries = 
-    match entries with 
+let empty_entries entries =
+    match entries with
     | Opam [] | Lib [] | Mdl [] | Meta [] | Src [] -> true
     | _ -> false
 (** Says if [entries] is empty. *)
 
-let empty_elements elements = 
-    match elements with 
-    | Val [] -> true
+let empty_elements elements =
+    match elements with
+    | Val []
+    | Type []
+    (*| Class []*) -> true
     | _ -> false
 (** Says if [elements] is empty. *)
 
 let pattern_from_info info =
     match info with
     | Entry entry_info -> entry_info.pattern
-    | Element element_info -> element_info.pattern 
+    | Element element_info -> element_info.pattern
 (** Get pattern from [info]. *)
 
 let file_type_of_string = function
     | "ml" -> ML
     | "dune" -> DUNE
     | "makefile" -> MAKEFILE
-    | str -> failwith ("Not valid file type : " ^ str)  
+    | str -> failwith ("Not valid file type : " ^ str)
 (** Conversion from [string] to [file_type]. *)
 
 let file_type_to_string = function
@@ -174,13 +184,13 @@ let sources_search_info_of_string str =
         let pattern = pattern_of_string patt
         and files = file_type_of_string file_type
         and is_regex = bool_of_string regex
-        and is_case_sensitive = bool_of_string case 
+        and is_case_sensitive = bool_of_string case
         and last_match_id = int_of_string last_match_id in
         {is_regex; files; is_case_sensitive; pattern; last_match_id}
     | _ -> failwith ("Not valid sources_search_info info : " ^ str)
 (** Conversion from [string] to [sources_search_info]. *)
 
-let sources_search_info_to_string 
+let sources_search_info_to_string
     { is_regex; files; is_case_sensitive; pattern; last_match_id } =
     Printf.sprintf "%s+%s+%b+%b+%d"
         (pattern_to_string pattern)
@@ -190,14 +200,14 @@ let sources_search_info_to_string
         last_match_id
 (** Conversion from [sources_search_info] to [string] *)
 
-let to_result : type conv. 
+let to_result : type conv.
     string ->
-    convf:(string -> conv) -> 
-    (conv, string) result 
+    convf:(string -> conv) ->
+    (conv, string) result
     =
     fun str ~convf ->
         try
             Ok (convf str)
-        with 
+        with
             Failure str -> Error ("Not recognized data_type : " ^ str)
 (** [to_result str ~convf] encapsulates application of [convf] on [str] within [result] type *)
