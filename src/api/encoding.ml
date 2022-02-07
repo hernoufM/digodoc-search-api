@@ -105,7 +105,6 @@ let types = list type_entry_enc
 
 type nonrec class_entry = Data_types.class_element = {
   ident : string;
-  items : string;
   mdl : string;
   mdlpath : string;
   opam : string;
@@ -125,14 +124,12 @@ let ocaml_elements =
       ~title:"Type"
       types
       (function | Type s -> Some s | _ -> None)
-      (function s -> Type s)
-      (*
+      (function s -> Type s);
     case
       ~title:"Class"
       classes
       (function | Class s -> Some s | _ -> None)
       (function s -> Class s)
-      *)
     ]
   in
     union cases

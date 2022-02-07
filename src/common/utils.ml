@@ -60,18 +60,14 @@ let entry_info_to_string
 let element_type_of_string = function
     | "vals" -> VAL
     | "types" -> TYPE
-    (*
     | "classes" -> CLASS
-    *)
     | s -> failwith ("Not valid element type : " ^ s)
 (** Conversion from [string] to [element_type]. Raises [Failure] if can't convert to [element_type]. *)
 
 let element_type_to_string = function
     | VAL -> "vals"
     | TYPE -> "types"
-    (*
     | CLASS -> "classes"
-    *)
 (** Conversion from [element_type] to [string] *)
 
 let element_info_of_string str =
@@ -155,7 +151,7 @@ let empty_elements elements =
     match elements with
     | Val []
     | Type []
-    (*| Class []*) -> true
+    | Class [] -> true
     | _ -> false
 (** Says if [elements] is empty. *)
 

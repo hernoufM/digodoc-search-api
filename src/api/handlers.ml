@@ -69,10 +69,10 @@ let elements (_params, element_info) () = to_api (
         (* gets types from DB *)
         Elements.get_types modules element_info >|= fun types ->
             Ok (Type types)
-(*
-    | CLASS -> Element.get_types modules element_info >|= fun classes ->
+    | CLASS ->
+        (* gets classes from DB *)
+        Elements.get_classes modules element_info >|= fun classes ->
             Ok (Class classes)
-*)
 )
 (** Handler for [Services.elements] service. Looks up element type from [element_info] and returns list of corresponding
     elements respecting [element_info] constraints. *)

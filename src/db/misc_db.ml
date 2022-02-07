@@ -127,15 +127,15 @@ let val_of_row row opam_row mdl_row =
     }
 (** Creates [Data_types.val_element] from DB rows. *)
 
-let type_of_row_opt modules row opam_row mdl_row =
-    let opam_row = List.hd opam_row
-    and mdl_row = List.hd mdl_row in
-    let opampath = path_of_opam opam_row#opam_name opam_row#opam_version
-    and opam = name_of_opam opam_row#opam_name opam_row#opam_version
-    and mdlpath = mdl_row#mdl_path
-    and mdl = mdl_row#mdl_name in
+let type_of_row_opt modules row opam_row mdl_row : Data_types.type_element option =
+  let opam_row = List.hd opam_row in
+  let mdl_row = List.hd mdl_row in
+  let opampath = path_of_opam opam_row#opam_name opam_row#opam_version in
+  let opam = name_of_opam opam_row#opam_name opam_row#opam_version in
+  let mdlpath = mdl_row#mdl_path in
+  let mdl = mdl_row#mdl_name in
     (* If val resepcts one of opam and mdl condition *)
-    if List.length modules = 0
+  if modules = []
        || List.exists
             (fun (mdl_name,opam_name) -> mdl_name = mdl && opam_name = opam_row#opam_name)
             modules
@@ -147,7 +147,29 @@ let type_of_row_opt modules row opam_row mdl_row =
                 opampath
             }
     else None
+(** Creates [Data_types.type_element] from DB rows. *)
 
+let class_of_row_opt modules row opam_row mdl_row : Data_types.class_element option =
+  let opam_row = List.hd opam_row in
+  let mdl_row = List.hd mdl_row in
+  let opampath = path_of_opam opam_row#opam_name opam_row#opam_version in
+  let opam = name_of_opam opam_row#opam_name opam_row#opam_version in
+  let mdlpath = mdl_row#mdl_path in
+  let mdl = mdl_row#mdl_name in
+    (* If val resepcts one of opam and mdl condition *)
+  if modules = []
+       || List.exists
+            (fun (mdl_name,opam_name) -> mdl_name = mdl && opam_name = opam_row#opam_name)
+            modules
+    then Some {
+                ident = row#ident;
+                mdl;
+                mdlpath;
+                opam;
+                opampath
+            }
+    else None
+(** Creates [Data_types.class_element] from DB rows. *)
 
 let count_from_row = function [ Some v ] -> Int64.to_int v | _ -> 0
 (** Extracts result of command 'count' from DB row *)

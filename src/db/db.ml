@@ -200,38 +200,42 @@ module Elements = struct
       - Value should be defined in one of the module from [modules] list.
       - Value should match [pattern] regex expression, that describes case insensetive substring of the name. *)
 
-  let get_types modules {last_id; pattern; _} =
+  let get_types modules {last_id; pattern; _} : Data_types.types Lwt.t =
     with_dbh >>> fun dbh -> catch_db_error @@
     fun () ->
       let modules_regex,opam_regex = regexs_from_modules modules in
-      let%lwt rows = [%pgsql.object dbh "show"
+      let%lwt rows = [%pgsql.object dbh
       "SELECT
        *
        FROM
             (
-              SELECT DISTINCT ident, mdl_opam_name, mdl_name, mdl_id,
+              SELECT *,
               ROW_NUMBER () OVER (
-                                  ORDER BY UPPER(mdl_ident)
+                                  ORDER BY UPPER(ident)
                                  ) AS row_id
               FROM
                   (
-                    SELECT
-                    *, ident as mdl_ident
+                    SELECT DISTINCT ident, mdl_opam_name, mdl_name, mdl_id
                     FROM
+                        (
+                          SELECT
+                          *, ident AS mdl_ident
+                          FROM
                               module_types
-                    INNER JOIN
+                          INNER JOIN
                               type_signatures
-                    USING (type_id)
-                  ) AS temp
-              WHERE
-              (
-              temp.mdl_ident ~* $pattern
-              OR
-              temp.constructor ~* $pattern)
-              AND
-              mdl_name ~* $modules_regex
-              AND
-              mdl_opam_name ~* $opam_regex
+                          USING (type_id)
+                        ) AS temp
+                    WHERE
+                    (
+                      temp.mdl_ident ~* $pattern
+                      OR
+                      temp.constructor ~* $pattern)
+                      AND
+                      mdl_name ~* $modules_regex
+                      AND
+                      mdl_opam_name ~* $opam_regex
+                  ) sub2
             ) result
        WHERE
        result.row_id > ${Int64.of_int last_id}
@@ -245,6 +249,61 @@ module Elements = struct
             let%lwt opam_row = get_opam_by_name dbh opam_name in
             let%lwt mdl_row = get_mdl_by_id dbh row#mdl_id in
             Lwt.return (type_of_row_opt modules row opam_row mdl_row)
+          )
+          rows
+  (** Get 50 first ocaml types starting with index [last_id + 1] in DB rows that are obtained by following conditions :
+      - Types should be defined in one of the module from [modules] list.
+      - Type identiers or "constructors" should match [pattern] regex expression, that describe case insensetive substring of the name. *)
+
+  let get_classes modules {last_id; pattern; _} : Data_types.classes Lwt.t =
+    with_dbh >>> fun dbh -> catch_db_error @@
+    fun () ->
+      let modules_regex,opam_regex = regexs_from_modules modules in
+      let%lwt rows = [%pgsql.object dbh
+      "SELECT
+       *
+       FROM
+            (
+              SELECT *,
+              ROW_NUMBER () OVER (
+                                  ORDER BY UPPER(ident)
+                                 ) AS row_id
+              FROM
+                  (
+                    SELECT DISTINCT ident, mdl_opam_name, mdl_name, mdl_id
+                    FROM
+                        (
+                          SELECT
+                          *, ident AS mdl_ident
+                          FROM
+                              module_types
+                          INNER JOIN
+                              type_signatures
+                          USING (type_id)
+                        ) AS temp
+                    WHERE
+                    (
+                      temp.mdl_ident ~* $pattern
+                      OR
+                      temp.constructor ~* $pattern)
+                      AND
+                      mdl_name ~* $modules_regex
+                      AND
+                      mdl_opam_name ~* $opam_regex
+                  ) sub2
+            ) result
+       WHERE
+       result.row_id > ${Int64.of_int last_id}
+       AND
+       result.row_id < ${Int64.add (Int64.of_int last_id) (Int64.of_int 50)}"]
+
+      in
+        Lwt_list.filter_map_s
+          (fun row ->
+            let opam_name = row#mdl_opam_name in
+            let%lwt opam_row = get_opam_by_name dbh opam_name in
+            let%lwt mdl_row = get_mdl_by_id dbh row#mdl_id in
+            Lwt.return (class_of_row_opt modules row opam_row mdl_row)
           )
           rows
 end
@@ -294,12 +353,58 @@ module Commands = struct
                               where mdl_ident ~* $pattern
                                     and mdl_name ~* $modules_regex
                                     and mdl_opam_name ~* $opam_regex"] >|= count_from_row
-        | TYPE -> [%pgsql dbh "select count(*) as n
-                            from module_types
-                            where ident ~* $pattern
-                            and mdl_name ~* $modules_regex
-                            and mdl_opam_name ~* $opam_regex"]
-            >|= count_from_row
+        | TYPE -> [%pgsql dbh
+        "SELECT COUNT(*) AS n
+         FROM
+              (
+                SELECT DISTINCT ident, mdl_opam_name, mdl_name
+                FROM
+                      (
+                        SELECT
+                        *, ident as mdl_ident
+                        FROM
+                            module_types
+                        INNER JOIN
+                            type_signatures
+                        USING (type_id)
+                      ) AS temp
+                WHERE
+                (
+                  temp.mdl_ident ~* $pattern
+                  OR
+                  temp.constructor ~* $pattern
+                )
+                AND
+                mdl_name ~* $modules_regex
+                AND
+                mdl_opam_name ~* $opam_regex
+            ) as sub"] >|= count_from_row
+        | CLASS -> [%pgsql dbh
+        "SELECT COUNT(*) AS n
+         FROM
+              (
+                SELECT DISTINCT ident, mdl_opam_name, mdl_name
+                FROM
+                      (
+                        SELECT
+                        *, ident AS mdl_ident
+                        FROM
+                            module_types
+                        INNER JOIN
+                            type_signatures
+                        USING (type_id)
+                      ) AS temp
+                WHERE
+                (
+                  temp.mdl_ident ~* $pattern
+                  OR
+                  temp.constructor ~* $pattern
+                )
+                AND
+                mdl_name ~* $modules_regex
+                AND
+                mdl_opam_name ~* $opam_regex
+            ) as sub"] >|= count_from_row
         end
   (** Count number of elements in DB for specific element type mentionned in [element] field. It should follow those conditions :
       - Element name should respect at least 1 package constraint and at least 1 module constaint if they are presented. Constraint

@@ -98,7 +98,6 @@ type nonrec types = type_element list
 
 type nonrec class_element = {
   ident : string;
-  items : string;
   mdl : string;
   mdlpath : string;
   opam : string;
@@ -111,9 +110,7 @@ type nonrec classes = class_element list
 type ocaml_elements =
   | Val of vals
   | Type of types
-  (*
   | Class of classes
-  *)
 (** Type that regroups every element that is a component of a
     module (val, type, class, etc.). Result of [getElements] service *)
 
@@ -181,9 +178,7 @@ type entry_type = PACK | LIB | MOD | META | SRC
 type element_type =
   | VAL
   | TYPE
-  (*
   | CLASS
-  *)
 
 type pattern = string
 (** Search pattern *)
