@@ -276,9 +276,9 @@ module Elements = struct
                           SELECT
                           *, ident AS mdl_ident
                           FROM
-                              module_types
+                              module_classes
                           INNER JOIN
-                              type_signatures
+                              class_signatures
                           USING (type_id)
                         ) AS temp
                     WHERE
@@ -389,9 +389,9 @@ module Commands = struct
                         SELECT
                         *, ident AS mdl_ident
                         FROM
-                            module_types
+                            module_classes
                         INNER JOIN
-                            type_signatures
+                            class_signatures
                         USING (type_id)
                       ) AS temp
                 WHERE
