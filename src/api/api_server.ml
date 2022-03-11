@@ -27,24 +27,24 @@ let server services =
   (* Load sources DBs *)
   Handlers.(
       sources_ocaml_db := Some
-        (Ez_search.V1.EzSearch.load_db 
-          ~db_dir:sources_db_path 
-          ~db_name:ocaml_db_name 
+        (Ez_search.V1.EzSearch.load_db
+          ~db_dir:sources_db_path
+          ~db_name:ocaml_db_name
           ~use_mapfile:true
           ());
       sources_dune_db := Some
-        (Ez_search.V1.EzSearch.load_db 
-          ~db_dir:sources_db_path 
-          ~db_name:dune_db_name 
+        (Ez_search.V1.EzSearch.load_db
+          ~db_dir:sources_db_path
+          ~db_name:dune_db_name
           ~use_mapfile:true
           ());
       sources_makefile_db := Some
-        (Ez_search.V1.EzSearch.load_db 
-          ~db_dir:sources_db_path 
-          ~db_name:makefile_db_name 
+        (Ez_search.V1.EzSearch.load_db
+          ~db_dir:sources_db_path
+          ~db_name:makefile_db_name
           ~use_mapfile:true
           ());
-    ); 
+    );
   let servers = [ !api_port, EzAPIServerUtils.API services ] in
   Lwt_main.run (
     (* Prints server's port *)
@@ -52,7 +52,7 @@ let server services =
       (String.concat ","
          (List.map (fun (port,_) ->
               string_of_int port) servers));
-    (* Launch server *)  
+    (* Launch server *)
     EzAPIServer.server ~catch servers
   )
 (** Launch API server with specified services of type [EzAPIServerUtils.Directory.t]. *)

@@ -27,7 +27,7 @@ type nonrec lib_entry = {
 }
 (** Library entry *)
 
-type nonrec libraries = lib_entry list 
+type nonrec libraries = lib_entry list
 (** List of library entries *)
 
 type nonrec meta_entry = {
@@ -65,7 +65,7 @@ type nonrec sources = source_entry list
 (** List of source entries *)
 
 (** Type that regroups every entry that is a component of OCaml ecosystem (package, library, module, etc.). Result of [getEntries] service. *)
-type entries = 
+type entries =
   | Opam of packages
   | Lib of libraries
   | Mdl of modules
@@ -85,11 +85,34 @@ type nonrec val_element = {
 type nonrec vals = val_element list
 (** List of value elements *)
 
+type nonrec type_element = {
+  ident : string;
+  mdl : string;
+  mdlpath : string;
+  opam : string;
+  opampath : string;
+}
 
-(** Type that regroups every element that is a component of a 
-    module (val, type, class, etc.). Result of [getElements] service *)
+type nonrec types = type_element list
+(** List of type elements *)
+
+type nonrec class_element = {
+  ident : string;
+  mdl : string;
+  mdlpath : string;
+  opam : string;
+  opampath : string;
+}
+
+type nonrec classes = class_element list
+(** List of class elements *)
+
 type ocaml_elements =
   | Val of vals
+  | Type of types
+  | Class of classes
+(** Type that regroups every element that is a component of a
+    module (val, type, class, etc.). Result of [getElements] service *)
 
 type command_result = {
   result : string;
@@ -116,7 +139,7 @@ type sources_occurence = {
   (* path to the line at the site *)
   occpath: string;
 }
-(** Type that describes one occurence of the match for 
+(** Type that describes one occurence of the match for
     the fulltext search within sources *)
 
 type sources_search_result = {
@@ -130,7 +153,7 @@ type sources_search_result = {
 (** Possible error types that search-api can raise *)
 type server_error_type =
   | Invalid_regex
-  | No_sources_config 
+  | No_sources_config
   | Unknown
 
 (** Search api exception. When raised by server code
@@ -141,9 +164,9 @@ exception Search_api_error of server_error_type
 let search_api_error typ = Search_api_error typ
 
 let server_error_type err =
-  match err with 
+  match err with
   | Search_api_error typ -> typ
-  | _ -> Unknown 
+  | _ -> Unknown
 (** Decapsulate server_error_type *)
 
 (** {1 Argument types} *)
@@ -152,7 +175,10 @@ let server_error_type err =
 type entry_type = PACK | LIB | MOD | META | SRC
 
 (** Element type *)
-type element_type = VAL
+type element_type =
+  | VAL
+  | TYPE
+  | CLASS
 
 type pattern = string
 (** Search pattern *)
@@ -184,16 +210,16 @@ type element_info = {
 }
 (** Element info, that is used to customise element search. *)
 
-(* Type that regroups [entry_info] and [element_info]. 
+(* Type that regroups [entry_info] and [element_info].
    Used by services that handle both : entries and elements. *)
-type info = 
+type info =
   | Entry of entry_info
   | Element of element_info
 
 (** All commands that could be executed with service [exec_command]. *)
-type command = Count 
+type command = Count
 
-type file_type = ML | DUNE | MAKEFILE 
+type file_type = ML | DUNE | MAKEFILE
 
 type sources_search_info = {
   pattern : pattern;

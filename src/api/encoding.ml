@@ -38,7 +38,7 @@ type nonrec module_entry = Data_types.module_entry = {
   libs : (string * string) list;
 } [@@deriving json_encoding]
 
-let modules = list module_entry_enc 
+let modules = list module_entry_enc
 
 type nonrec source_entry = Data_types.source_entry = {
   namesrc : string;
@@ -51,34 +51,34 @@ let sources = list source_entry_enc
 
 let entries =
   let cases =
-    [case 
-      ~title:"Opam" 
-      packages 
+    [case
+      ~title:"Opam"
+      packages
       (function | Opam s -> Some s | _ -> None )
       (function s -> Opam s);
-    case 
-      ~title:"Lib" 
-      libraries 
+    case
+      ~title:"Lib"
+      libraries
       (function | Lib s -> Some s | _ -> None )
       (function s -> Lib s);
-    case 
-      ~title:"Mdl" 
+    case
+      ~title:"Mdl"
       modules
       (function | Mdl s -> Some s | _ -> None )
       (function s -> Mdl s);
-    case 
-      ~title:"Meta" 
+    case
+      ~title:"Meta"
       metas
       (function | Meta s -> Some s | _ -> None )
       (function s -> Meta s);
-    case 
-      ~title:"Src" 
+    case
+      ~title:"Src"
       sources
       (function | Src s -> Some s | _ -> None )
       (function s -> Src s)
     ]
   in
-    union cases 
+    union cases
 
 let modules_name = list @@ tup2 string string
 
@@ -91,15 +91,45 @@ type nonrec val_entry = Data_types.val_element = {
   opampath : string;
 } [@@deriving json_encoding]
 
-let vals = list val_entry_enc 
+let vals = list val_entry_enc
 
-let ocaml_elements = 
+type nonrec type_entry = Data_types.type_element = {
+  ident : string;
+  mdl : string;
+  mdlpath : string;
+  opam : string;
+  opampath : string;
+} [@@deriving json_encoding]
+
+let types = list type_entry_enc
+
+type nonrec class_entry = Data_types.class_element = {
+  ident : string;
+  mdl : string;
+  mdlpath : string;
+  opam : string;
+  opampath : string;
+} [@@deriving json_encoding]
+
+let classes = list class_entry_enc
+
+let ocaml_elements =
   let cases =
-    [case 
-      ~title:"Val" 
-      vals 
-      (function Val s -> Some s)
-      (function s -> Val s)
+    [case
+      ~title:"Val"
+      vals
+      (function | Val s -> Some s | _ -> None)
+      (function s -> Val s);
+    case
+      ~title:"Type"
+      types
+      (function | Type s -> Some s | _ -> None)
+      (function s -> Type s);
+    case
+      ~title:"Class"
+      classes
+      (function | Class s -> Some s | _ -> None)
+      (function s -> Class s)
     ]
   in
     union cases

@@ -1,4 +1,4 @@
-(** Modules [Encoding] defines JSON encodings for OCaml data types 
+(** Modules [Encoding] defines JSON encodings for OCaml data types
     used by Digodoc-search API. *)
 
 val api_config : int option Json_encoding.encoding
